@@ -173,7 +173,7 @@ router.delete("/:id", async (req, res) => {
     }
 });
 
-// Get All Customers
+// Get All Customerss
 router.get("/all", async (req, res) => {
     try {
         // Fetch all customers and their phone numbers
