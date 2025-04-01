@@ -74,7 +74,14 @@ router.post(
                 "SELECT * FROM employees WHERE email = ?",
                 [email]
             );
-            if (existingUser.length > 0) return res.status(400).json({ message: "Email already exists" });
+            if (existingUser.length > 0) {throw new Error("Email already exists");}
+
+            //check if nic exists
+            const [existingUsernic] = await db.query(
+                "SELECT * FROM employees WHERE nic = ?",
+                [nic]
+            );
+            if (existingUsernic.length > 0) return res.status(400).json({ message: "NIC already exists" });
 
             // Check if username exists
             const [existingUsername] = await db.query(
@@ -83,6 +90,7 @@ router.post(
             );
             if (existingUsername.length > 0) return res.status(400).json({ message: "Username already exists" });
 
+            // Check if phone numbers already exist
             for (let phone of phone_number) {
                 const [existingPhone] = await db.query(
                     "SELECT * FROM employee_phones WHERE phone_number = ?",

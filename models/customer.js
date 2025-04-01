@@ -21,7 +21,7 @@ module.exports = (sequelize) => {
       unique: true,
     },
     type: {
-      type: DataTypes.ENUM('Regular', 'Premium'),
+      type: DataTypes.ENUM('Regular', 'Normal'),
       allowNull: false,
     },
  },
