@@ -5,6 +5,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
 import moment from "moment";
+//import 'src/index.css';
 
 const EmployeeTable = () => {
     const [employees, setEmployees] = useState([]);
@@ -46,60 +47,68 @@ const EmployeeTable = () => {
 
 
     return (
-        <Box sx={{ flexGrow: 1, p: 3 }}>
-            <Typography variant="h4" gutterBottom style={{ fontFamily: 'Poppins',fontWeight: 'bold'}}>
-                View Employee Details
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <TextField
-                    label="Search Employees"
-                    variant="outlined"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    style={{ fontFamily: 'Poppins',fontWeight: 'bold'}}
-                />
-                <Button variant="contained" sx={{ borderRadius:'15px', fontFamily: 'Poppins',fontWeight: 600 }}>Sort by Name</Button>
-            </Box>
-            <TableContainer component={Paper}>
-                <Table sx={{ borderCollapse: 'collapse', '& td, & th': { border: '1px solid #ccc' } }}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell style={{ fontFamily: 'Poppins',fontWeight: 'bold', textAlign: 'center', backgroundColor: '#d3d3d3' }}>Employee ID</TableCell>
-                            <TableCell style={{ fontFamily: 'Poppins', fontWeight: 'bold', textAlign: 'center', backgroundColor: '#d3d3d3' }}> First Name</TableCell>
-                            <TableCell style={{ fontFamily: 'Poppins', fontWeight: 'bold', textAlign: 'center', backgroundColor: '#d3d3d3' }}> Last Name</TableCell>
-                            <TableCell style={{  fontFamily: 'Poppins',fontWeight: 'bold', textAlign: 'center', backgroundColor: '#d3d3d3' }}>NIC</TableCell>
-                            <TableCell style={{  fontFamily: 'Poppins',fontWeight: 'bold', textAlign: 'center', backgroundColor: '#d3d3d3' }}>DOB</TableCell>
-                            <TableCell style={{  fontFamily: 'Poppins',fontWeight: 'bold', textAlign: 'center', backgroundColor: '#d3d3d3' }}>Role</TableCell>
-                            <TableCell style={{  fontFamily: 'Poppins',fontWeight: 'bold', textAlign: 'center', backgroundColor: '#d3d3d3' }}>Email</TableCell>
-                            <TableCell style={{  fontFamily: 'Poppins',fontWeight: 'bold', textAlign: 'center', backgroundColor: '#d3d3d3' }}>Telephone Number</TableCell>
-                            <TableCell style={{  fontFamily: 'Poppins',fontWeight: 'bold', textAlign: 'center', backgroundColor: '#d3d3d3' }}>Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
+        <div className="container mt-4">
+            <h2 className="text-center mb-4">View Employee Details</h2>
+            <div className="row mb-3">
+                <div className="col-md-6">
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search Employees"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
+                <div className="col-md-6 text-end">
+                    <button className="btn btn-primary">Sort by Name</button>
+                </div>
+            </div>
+            <div className="table-responsive">
+                <table className="table table-bordered table-hover">
+                    <thead className="table-light">
+                        <tr>
+                            <th className="text-center">Employee ID</th>
+                            <th className="text-center">First Name</th>
+                            <th className="text-center">Last Name</th>
+                            <th className="text-center">NIC</th>
+                            <th className="text-center">DOB</th>
+                            <th className="text-center">Role</th>
+                            <th className="text-center">Email</th>
+                            <th className="text-center">Telephone Number</th>
+                            <th className="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                         {filteredEmployees.map((employee) => (
-                            <TableRow key={employee.employee_id}>
-                                <TableCell style={{ fontFamily: 'Poppins', textAlign: 'center', }}>{employee.employee_id}</TableCell>
-                                <TableCell style={{ fontFamily: 'Poppins', textAlign: 'center', }}>{employee.first_name}</TableCell>
-                                <TableCell style={{ fontFamily: 'Poppins', textAlign: 'center', }}>{employee.last_name}</TableCell>
-                                <TableCell style={{ fontFamily: 'Poppins', textAlign: 'center', }}>{employee.nic}</TableCell>
-                                <TableCell style={{ fontFamily: 'Poppins', textAlign: 'center', }}>{moment(employee.dob).format('YYYY-MM-DD')}</TableCell>
-                                <TableCell style={{ fontFamily: 'Poppins', textAlign: 'center', }}>{employee.role}</TableCell>
-                                <TableCell style={{ fontFamily: 'Poppins', textAlign: 'center', }}>{employee.email}</TableCell>
-                                <TableCell style={{ fontFamily: 'Poppins', textAlign: 'center', }}>{employee.phone_number}</TableCell>
-                                <TableCell>
-                                    <IconButton onClick={() => handleViewClick(employee.employee_id)}>
-                                        <VisibilityIcon />
-                                    </IconButton>
-                                    <IconButton onClick={() => handleDeleteClick(employee.employee_id)}>
-                                        <DeleteIcon />
-                                    </IconButton>
-                                </TableCell>
-                            </TableRow>
+                            <tr key={employee.employee_id}>
+                                <td className="text-center">{employee.employee_id}</td>
+                                <td className="text-center">{employee.first_name}</td>
+                                <td className="text-center">{employee.last_name}</td>
+                                <td className="text-center">{employee.nic}</td>
+                                <td className="text-center">{moment(employee.dob).format('YYYY-MM-DD')}</td>
+                                <td className="text-center">{employee.role}</td>
+                                <td className="text-center">{employee.email}</td>
+                                <td className="text-center">{employee.phone_number}</td>
+                                <td className="text-center">
+                                    <button
+                                        className="btn btn-sm btn-info me-2"
+                                        onClick={() => handleViewClick(employee.employee_id)}
+                                    >
+                                        Update
+                                    </button>
+                                    <button
+                                        className="btn btn-sm btn-danger mt-2"
+                                        onClick={() => handleDeleteClick(employee.employee_id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
                         ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </Box>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     );
 };
 

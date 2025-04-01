@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Box } from '@mui/material';
 
-const EmployeeDetail = () => {
+const EmployeeUpdate = () => {
     const { id } = useParams();
     const [employee, setEmployee] = useState(null);
     const [message, setMessage] = useState('');
@@ -131,13 +131,35 @@ const EmployeeDetail = () => {
                     fullWidth
                     margin="normal"
                 />
-                <Button type="submit" variant="contained" color="primary" fullWidth>
-                    Update
-                </Button>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        gap: 2, // Adds spacing between buttons
+                        mt: 2 // Adds top margin
+                    }}
+                >
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        sx={{ flex: 1 }} // Ensures both buttons have equal width
+                    >
+                        Register
+                    </Button>
+                    <Button
+                        type="reset"
+                        variant="contained"
+                        color="gray"
+                        sx={{ flex: 1 }} // Ensures both buttons have equal width
+                    >
+                        Cancel
+                    </Button>
+                </Box>
             </Box>
             {message && <Typography color="error">{message}</Typography>}
         </Container>
     );
 };
 
-export default EmployeeDetail;
+export default EmployeeUpdate;

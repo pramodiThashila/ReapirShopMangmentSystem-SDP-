@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Container, TextField, Button, Typography, Box } from '@mui/material';
+import bg from '../assets/bg.jpg'; 
+//import 'src/index.css';
 
 const Login = ({ onLogin }) => {
     const [email, setEmail] = useState('');
@@ -53,14 +55,21 @@ const Login = ({ onLogin }) => {
 
     return (
         <Container
-            maxWidth="xs"
+            
             sx={{
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                minHeight: '100vh',
+                minHeight: '100vh', // Full viewport height
+                width: '100vw', // Full viewport width
+                backgroundImage: `url(${bg})`, // Background image
+                backgroundSize: 'cover', // Ensure the image covers the entire area
+                backgroundPosition: 'center', // Center the image
+                backgroundRepeat: 'no-repeat', // Prevent tiling
+                position: 'relative', // For overlay or additional elements
                 fontFamily: 'DM Sans, sans-serif',
-                // backgroundColor: '#f0f0f0', // Light grey background
+                margin: 0, // Remove any default margin
+                padding: 0,
             }}
         >
             <Box
@@ -68,18 +77,20 @@ const Login = ({ onLogin }) => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    p: 3,
+                    p: 4,
                     border: '1px solid #ccc',
-                    borderRadius: 2,
-                    boxShadow: 1,
+                    borderRadius: 3,
+                    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
                     backgroundColor: '#fff',
-                    fontFamily: 'DM Sans, sans-serif',
+                    fontFamily: 'Poppins',
+                    width: '100%',
+                    maxWidth: 400
                 }}
             >
-                <Typography component="h1" variant="h5" sx={{ fontFamily: 'DM Sans, sans-serif', color: '#333' }}>
+                <Typography component="h1" variant="h5" sx={{ fontFamily: 'Poppins, sans-serif', color: '#333',mb: 2, fontWeight: 'bold' }}>
                     Employee Login
                 </Typography>
-                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
                     <TextField
                         margin="normal"
                         required
@@ -91,7 +102,8 @@ const Login = ({ onLogin }) => {
                         autoFocus
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        sx={{ fontFamily: 'DM Sans, sans-serif' }}
+                        sx={{ fontFamily:'Poppins, sans-serif',
+                        '& .MuiInputBase-root': { borderRadius: 2 }, }}
                     />
                     <TextField
                         margin="normal"
@@ -104,18 +116,19 @@ const Login = ({ onLogin }) => {
                         autoComplete="current-password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        sx={{ fontFamily: 'DM Sans, sans-serif' }}
+                        sx={{ fontFamily:'Poppins, sans-serif',
+                            '& .MuiInputBase-root': { borderRadius: 2 }, }}
                     />
                     <Button
                         type="submit"
                         fullWidth
                         variant="contained"
-                        sx={{ mt: 3, mb: 2, fontFamily: 'DM Sans, sans-serif', backgroundColor: '#1976d2', color: '#fff' }}
+                        sx={{ mt: 3, mb: 2, fontFamily: 'Poppins, sans-serif', backgroundColor: '#155a9c', color: '#fff' }}
                     >
                         Login
                     </Button>
                 </Box>
-                {message && <Typography color="error" sx={{ fontFamily: 'DM Sans, sans-serif' }}>{message}</Typography>}
+                {message && <Typography color="error" sx={{ fontFamily: 'Poppins, sans-serif' }}>{message}</Typography>}
             </Box>
         </Container>
     );
