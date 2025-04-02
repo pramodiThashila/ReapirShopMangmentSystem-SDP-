@@ -7,7 +7,7 @@ const db = require("./models"); // Import Sequelize models
 dotenv.config();
 
 const customerRoutes = require("./src/routes/customerRoutes");
-const employeeRoutes = require("./src/routes/employeeRoutes");
+const employeeRoutes = require("./src/routes/EmployeeRoutes");
 const productRoutes = require("./src/routes/productRoutes");
 const jobRoutes = require("./src/routes/jobRoutes");
 const supplierRoutes = require("./src/routes/supplierRoutes");
