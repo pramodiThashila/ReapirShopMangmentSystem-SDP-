@@ -70,8 +70,8 @@ const EmployeeRegister = () => {
 
 
     return (
-        <Container maxWidth="sm">
-            <Typography variant="h4" gutterBottom>
+        <Container maxWidth="sm" sx={{ backgroundColor: '#f5f7fa', padding: '2rem', borderRadius: '8px' }}>
+            <Typography variant="h4" gutterBottom sx={{ textAlign: 'center', fontWeight: 'bold', color: '#000'}}>
                 Register Employee
             </Typography>
             <Box component="form" onSubmit={handleSubmit}>

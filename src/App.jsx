@@ -5,9 +5,11 @@ import Dashboard from './components/DashboardUI';
 import EmployeeTable from './components/EmployeeTable';
 import EmployeeUpdate from './components/EmployeeUpdate';
 import Sidebar from './components/Sidebar';
+import TopBar from './components/Topbar'
 import EmployeeRegister from './components/EmployeeRegister';
 import RegisterJobAndCustomer from './components/customerJobAndRegister';
 import SupplierRegister from './components/SupplierRegister';
+import InventoryItemAdd from './components/InventoryItemAdd';
 import './App.css';
 
 function App() {
@@ -16,13 +18,15 @@ function App() {
 
     const handleLogin = () => {
         setIsAuthenticated(true);
-        navigate('/dashboard');
+        //navigate('/dashboard');
+        navigate('/employees');
+
     };
 
     return (
         <div style={{ display: 'flex' }}>
-            {isAuthenticated && <Sidebar />}
-            <div style={{ flexGrow: 1 }}>
+            {/*isAuthenticated &&*/ < TopBar />} 
+            <div style={{ flexGrow: 1,marginTop:"50px" }}> 
                 <Routes>
                     <Route path="/" element={<Login onLogin={handleLogin} />} />
                     <Route path="/dashboard" element={<Dashboard />} />
@@ -31,7 +35,7 @@ function App() {
                     <Route path="/employees/register" element={<EmployeeRegister />} />
                     <Route path="/jobAndCustomer/register" element={<RegisterJobAndCustomer />} />
                     <Route path="/supplier/register" element={<SupplierRegister />} />
-                    
+                    <Route path="/inventoryItem/add" element={<InventoryItemAdd />} />
                 </Routes>
             </div>
         </div>
