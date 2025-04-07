@@ -55,14 +55,12 @@ const Login = ({ onLogin }) => {
 
     return (
         <Container
-            
             sx={{
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
                 minHeight: '100vh', // Full viewport height
                 width: '100vw', // Full viewport width
-                backgroundImage: `url(${bg})`, // Background image
                 backgroundSize: 'cover', // Ensure the image covers the entire area
                 backgroundPosition: 'center', // Center the image
                 backgroundRepeat: 'no-repeat', // Prevent tiling
@@ -77,6 +75,7 @@ const Login = ({ onLogin }) => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
+                    justifyContent: 'center', // Center content vertically
                     p: 4,
                     border: '1px solid #ccc',
                     borderRadius: 3,
@@ -84,10 +83,10 @@ const Login = ({ onLogin }) => {
                     backgroundColor: '#fff',
                     fontFamily: 'Poppins',
                     width: '100%',
-                    maxWidth: 400
+                    maxWidth: 400,
                 }}
             >
-                <Typography component="h1" variant="h5" sx={{ fontFamily: 'Poppins, sans-serif', color: '#333',mb: 2, fontWeight: 'bold' }}>
+                <Typography component="h1" variant="h5" sx={{ fontFamily: 'Poppins, sans-serif', color: '#333', mb: 2, fontWeight: 'bold' }}>
                     Employee Login
                 </Typography>
                 <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
@@ -102,8 +101,10 @@ const Login = ({ onLogin }) => {
                         autoFocus
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        sx={{ fontFamily:'Poppins, sans-serif',
-                        '& .MuiInputBase-root': { borderRadius: 2 }, }}
+                        sx={{
+                            fontFamily: 'Poppins, sans-serif',
+                            '& .MuiInputBase-root': { borderRadius: 2 },
+                        }}
                     />
                     <TextField
                         margin="normal"
@@ -116,14 +117,22 @@ const Login = ({ onLogin }) => {
                         autoComplete="current-password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        sx={{ fontFamily:'Poppins, sans-serif',
-                            '& .MuiInputBase-root': { borderRadius: 2 }, }}
+                        sx={{
+                            fontFamily: 'Poppins, sans-serif',
+                            '& .MuiInputBase-root': { borderRadius: 2 },
+                        }}
                     />
                     <Button
                         type="submit"
                         fullWidth
                         variant="contained"
-                        sx={{ mt: 3, mb: 2, fontFamily: 'Poppins, sans-serif', backgroundColor: '#155a9c', color: '#fff' }}
+                        sx={{
+                            mt: 3,
+                            mb: 2,
+                            fontFamily: 'Poppins, sans-serif',
+                            backgroundColor: '#155a9c',
+                            color: '#fff',
+                        }}
                     >
                         Login
                     </Button>

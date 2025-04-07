@@ -10,6 +10,11 @@ import EmployeeRegister from './components/EmployeeRegister';
 import RegisterJobAndCustomer from './components/customerJobAndRegister';
 import SupplierRegister from './components/SupplierRegister';
 import InventoryItemAdd from './components/InventoryItemAdd';
+import InventoryBatchAdd from './components/InventoryBatchAdd';
+import InventoryView from './components/InventoryView';
+import InventoryItemUpdate from './components/InventoryItemUpdate';
+import InventoryBatchDetails from './components/InventoryBatchDetails';
+
 import './App.css';
 
 function App() {
@@ -25,7 +30,7 @@ function App() {
 
     return (
         <div style={{ display: 'flex' }}>
-            {/*isAuthenticated &&*/ < TopBar />} 
+            {isAuthenticated && < TopBar />} 
             <div style={{ flexGrow: 1,marginTop:"50px" }}> 
                 <Routes>
                     <Route path="/" element={<Login onLogin={handleLogin} />} />
@@ -36,6 +41,11 @@ function App() {
                     <Route path="/jobAndCustomer/register" element={<RegisterJobAndCustomer />} />
                     <Route path="/supplier/register" element={<SupplierRegister />} />
                     <Route path="/inventoryItem/add" element={<InventoryItemAdd />} />
+                    <Route path="/inventory/view" element={<InventoryView />} />
+                    <Route path='/inventoryItem/batch/add' element={<InventoryBatchAdd />} />
+                    <Route path='/inventoryItemUpdate/:id' element={<InventoryItemUpdate />} />
+                    <Route path='/inventoryBatchDetails/:inventoryItem_id' element={<InventoryBatchDetails />} />
+                    
                 </Routes>
             </div>
         </div>

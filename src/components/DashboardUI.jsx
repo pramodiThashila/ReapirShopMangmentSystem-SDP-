@@ -18,7 +18,7 @@ const Dashboard = () => {
                                 <Typography variant="h5" component="h2">
                                     Employee Performance Ratings
                                 </Typography>
-                                <BarChart data={[/* your data here */]} />
+                                <BarChart data={[/* to do */]} />
                             </CardContent>
                         </Card>
                     </Grid>
@@ -28,7 +28,7 @@ const Dashboard = () => {
                                 <Typography variant="h5" component="h2">
                                     Income Statistics
                                 </Typography>
-                                <BarChart data={[/* your data here */]} />
+                                <BarChart data={[/* to do */]} />
                             </CardContent>
                         </Card>
                     </Grid>

@@ -5,10 +5,10 @@ import { Container, TextField, Button, Typography, Box } from '@mui/material';
 
 const SupplierRegister = () => {
     const [supplier, setSupplier] = useState({
-        name: '',
+        supplier_name: '',
         email: '',
-        address: '',
-        phone_number: [], // Initialize as an array
+        phone_number: [],
+        address: '' // Initialize as an array
     });
     const [message, setMessage] = useState('');
 
@@ -43,10 +43,10 @@ const SupplierRegister = () => {
             setMessage('supplier registered successfully');
             //navigator('/suppliers'); // Redirect to supplier list or dashboard todo: navigation
             setSupplier({
-                name: '',
+                supplier_name: '',
                 email: '',
-                address: '',
-                phone_number: [], // Initialize as an array
+                phone_number: [],
+                address: '', // Initialize as an array
             });
         } catch (error) {
             setMessage('Error registering supplier');
@@ -67,8 +67,8 @@ const SupplierRegister = () => {
             <Box component="form" onSubmit={handleSubmit}>
                 <TextField
                     label="Supplier Name"
-                    name="name"
-                    value={supplier.name}
+                    name="supplier_name"
+                    value={supplier.supplier_name}
                     onChange={handleChange}
                     fullWidth
                     margin="normal"

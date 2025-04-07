@@ -100,7 +100,7 @@ const TopBar = () => {
                             horizontal: 'left',
                         }}
                     >
-                        <MenuItem component={Link} to="/customerAndJob/register" onClick={handleMenuClose}>
+                        <MenuItem component={Link} to="/jobAndCustomer/register" onClick={handleMenuClose}>
                             Register Job
                         </MenuItem>
                         <MenuItem component={Link} to="/jobs/view" onClick={handleMenuClose}>
@@ -141,7 +141,7 @@ const TopBar = () => {
                         <MenuItem component={Link} to="/customer/view" onClick={handleMenuClose}>
                             View Customers
                         </MenuItem>
-                        <MenuItem component={Link} to="/customerAndJob/register" onClick={handleMenuClose}>
+                        <MenuItem component={Link} to="/jobAndCustomer/register" onClick={handleMenuClose}>
                             Add Customer And Job
                         </MenuItem>
                     </Menu>
@@ -182,7 +182,7 @@ const TopBar = () => {
                         <MenuItem component={Link} to="/inventoryItem/add" onClick={handleMenuClose}>
                             Add New Inventory Item
                         </MenuItem>
-                        <MenuItem component={Link} to="/inventoryItemBatch/add" onClick={handleMenuClose}>
+                        <MenuItem component={Link} to="/inventoryItem/batch/add" onClick={handleMenuClose}>
                             Add New Batch
                         </MenuItem>
                     </Menu>
@@ -223,6 +223,46 @@ const TopBar = () => {
                         <MenuItem component={Link} to="/supplier/register" onClick={handleMenuClose}>
                             Add Supplier
                         </MenuItem>
+                    </Menu>
+                </Box>
+                {/* reports */}
+                <Box
+                    onMouseEnter={(e) => handleMenuOpen(e, 'reports')}
+                    onMouseLeave={handleMenuClose}
+                >
+                    <Button
+                        color="inherit"
+                        startIcon={<PersonIcon />}
+                        sx={{ color: '#fff', textTransform: 'none' }}
+                    >
+                        Reports
+                    </Button>
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={menuType === 'reports'}
+                        onClose={handleMenuClose}
+                        TransitionComponent={Grow} // Smooth transition
+                        MenuListProps={{
+                            onMouseLeave: handleMenuClose,
+                        }}
+                        anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'left',
+                        }}
+                        transformOrigin={{
+                            vertical: 'top',
+                            horizontal: 'left',
+                        }}
+                    >
+                        {/* <MenuItem component={Link} to="/inventory/view" onClick={handleMenuClose}>
+                            Income Report
+                        </MenuItem>
+                        <MenuItem component={Link} to="/inventoryItem/add" onClick={handleMenuClose}>
+                            Purchase Report
+                        </MenuItem>
+                        <MenuItem component={Link} to="/inventoryItem/batch/add" onClick={handleMenuClose}>
+                            
+                        </MenuItem> */}
                     </Menu>
                 </Box>
             </Toolbar>
