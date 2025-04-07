@@ -37,8 +37,8 @@ module.exports = (sequelize, DataTypes) => {
 );
 
   InventoryBatch.associate = (models) => {
-    InventoryBatch.belongsTo(models.Inventory, { foreignKey: 'inventoryItem_id', onDelete: 'RESTRICT' });
-    InventoryBatch.belongsTo(models.Supplier, { foreignKey: 'supplier_id', onDelete: 'RESTRICT' });
+    InventoryBatch.belongsTo(models.Inventory, { foreignKey: 'inventoryItem_id', onDelete: 'CASCADE' });
+    InventoryBatch.belongsTo(models.Supplier, { foreignKey: 'supplier_id', onDelete: 'CASCADE' });
   };
 
   return InventoryBatch;

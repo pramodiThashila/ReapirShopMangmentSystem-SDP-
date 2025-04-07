@@ -22,15 +22,53 @@ router.get("/all", async (req, res) => {
     }
 });
 
+//  Get  inventory items with qty count
+// Get inventory items with quantity count and stock status
+router.get("/allBatchcount", async (req, res) => {
+    try {
+        // Query to get inventory details with total quantity
+        const [inventory] = await db.query(`
+            SELECT 
+                i.inventoryItem_id,
+                i.item_name,
+                SUM(ib.quantity) AS total_quantity,
+                i.outOfStockLevel
+            FROM 
+                inventory i
+            JOIN 
+                inventorybatch ib 
+            ON 
+                i.inventoryItem_id = ib.inventoryItem_id
+            GROUP BY 
+                i.inventoryItem_id, i.item_name, i.outOfStockLevel
+        `);
+
+        // Add stock status to each inventory item
+        const inventoryWithStatus = inventory.map(item => { // Map through each item in the inventory array
+            const status = item.total_quantity < item.outOfStockLevel ? "Out of Stock" : "In Stock";
+            return {
+                ...item,//copy all the properties of the item object to the new object
+                status // Add the stock status to the new object
+            };
+        });
+
+        // Send the response
+        res.status(200).json(inventoryWithStatus);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
 //  Get a single inventory item by ID
 router.get(
-    "/:id",
-    [param("id").isInt().withMessage("Inventory ID must be an integer")],
+    "/:inventoryItem_id",
+    [param("inventoryItem_id").isInt().withMessage("Inventory ID must be an integer")],
     validateRequest,
     async (req, res) => {
         try {
             const [inventory] = await db.query("SELECT * FROM Inventory WHERE inventoryItem_id = ?", [
-                req.params.id,
+                req.params.inventoryItem_id,
             ]);
 
             if (inventory.length === 0) {
@@ -60,7 +98,7 @@ router.post(
 
         try {
             const [result] = await db.query(
-                "INSERT INTO inventory (name, outOfStockLevel) VALUES ( ?, ?)",
+                "INSERT INTO inventory (item_name, outOfStockLevel) VALUES ( ?, ?)",
                 [ item_name, outOfStockLevel]
             );
 
@@ -73,7 +111,7 @@ router.post(
 
 //  Update an inventory item
 router.put(
-    '/:id',
+    '/:inventoryItem_id',
     [
         body('item_name')
             .notEmpty().withMessage("Item name is required"),
@@ -86,13 +124,13 @@ router.put(
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { Inventory_ID } = req.params;
-        const { product_name, stock_limit } = req.body;
+        const { inventoryItem_id } = req.params;
+        const { item_name, outOfStockLevel } = req.body;
 
         try {
             await db.query(
-                "UPDATE Inventory SET name = ?, outOfStockLevel = ? WHERE inventoryItem_id = ?",
-                [product_name, stock_limit, Inventory_ID]
+                "UPDATE Inventory SET item_name = ?, outOfStockLevel = ? WHERE inventoryItem_id = ?",
+                [item_name, outOfStockLevel, inventoryItem_id]
             );
 
             res.status(200).json({ message: "Inventory item updated successfully!" });
@@ -101,5 +139,6 @@ router.put(
         }
     }
 );
+
 
 module.exports = router;

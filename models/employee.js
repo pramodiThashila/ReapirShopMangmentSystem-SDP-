@@ -17,12 +17,12 @@ module.exports = (sequelize, DataTypes) => {
         },
         email: {
           type: DataTypes.STRING(50),
-          unique: true,
+          // unique: true,
           allowNull: false,
         },
         nic: {
           type: DataTypes.STRING(12),
-          unique: true,
+          // unique: true,
           allowNull: false,
         },
         role: {
@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         username: {
           type: DataTypes.STRING(50),
-          unique: true,
+          // unique: true,
           allowNull: false,
         },
         password: {

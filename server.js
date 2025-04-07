@@ -13,7 +13,7 @@ const jobRoutes = require("./src/routes/jobRoutes");
 const supplierRoutes = require("./src/routes/supplierRoutes");
 const inventoryRoutes = require("./src/routes/inventoryRoutes");
 const jobUsedInventoryRoutes = require("./src/routes/jobUsedInventory");
-const inventoryBatchRoutes = require("./src/routes/inventoryBatch");
+const inventoryBatchRoutes = require("./src/routes/InventoryBatch");
 const invoiceRoutes = require("./src/routes/invoiceRoutes");
 
 const app = express();

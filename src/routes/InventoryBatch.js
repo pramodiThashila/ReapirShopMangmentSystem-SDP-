@@ -25,6 +25,21 @@ router.get('/getInventoryBatch/:batch_no', async (req, res) => {
     }
 });
 
+// Get all inventory batches for a specific inventory item
+router.get('/getInventoryItemBatch/:inventoryItem_id', async (req, res) => {
+    const { inventoryItem_id } = req.params;
+    try {
+        const [batches] = await db.query(
+            `select i.item_name , ib.batch_no , ib.unitprice, ib.quantity,ib.Purchase_Date,s.supplier_name
+from inventory i,inventorybatch ib, suppliers s
+where i.inventoryItem_id = ib.inventoryItem_id AND ib.supplier_id = s.supplier_id AND ib.inventoryItem_id = ?;`,
+            [inventoryItem_id]
+        );
+        res.status(200).json(batches);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 // Add a new inventory batch
 router.post(
     '/add',
@@ -61,24 +76,29 @@ router.post(
             // If purchase_date is provided, use it; otherwise, use the current date
             const purchaseDate = Purchase_Date || new Date();
 
+            // Calculate Total_Amount
+            const totalAmount = quantity * unitprice;
 
-
+            // Insert into inventorybatch
             const [result] = await db.query(
-                "INSERT INTO inventorybatch (inventoryItem_id, quantity, unitprice, Purchase_Date, supplier_id) VALUES (?, ?, ?, ?, ?)",
-                [inventoryItem_id, quantity, unitprice, purchaseDate, supplier_id]
+                "INSERT INTO inventorybatch (inventoryItem_id, quantity, unitprice, Total_Amount, Purchase_Date, supplier_id) VALUES (?, ?, ?, ?, ?, ?)",
+                [inventoryItem_id, quantity, unitprice, totalAmount, purchaseDate, supplier_id]
             );
 
-            res.status(201).json({ message: "Inventory batch added successfully!", id: result.insertId });
             const batch_no = result.insertId;
 
-
+            // Insert into inventorypurchase
             const [result1] = await db.query(
-                "INSERT INTO inventorypurchase (inventoryItem_id ,batch_no ,supplier_id ,purchaseDate , quantity ,unitprice ) VALUES ( ?, ?,?,?,?,?)",
-                [inventoryItem_id,batch_no ,supplier_id,purchaseDate,quantity,unitprice]
+                "INSERT INTO inventorypurchase (inventoryItem_id, batch_no, supplier_id, total, purchaseDate, quantity, unitprice) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [inventoryItem_id, batch_no, supplier_id, totalAmount, purchaseDate, quantity, unitprice]
             );
 
-            res.status(201).json({ message: "Inventory batch added successfully to purchase!", id: result1.insertId });
-            //res.status(201).json({ message: "Inventory batch added successfully!", id: result1.insertId });//to do:add data to suup item
+            // Send a single response with both results
+            res.status(201).json({
+                message: "Inventory batch and purchase added successfully!",
+                batchId: batch_no,
+                purchaseId: result1.insertId
+            });
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
@@ -134,7 +154,7 @@ router.put(
 
 // Delete an inventory batch
 router.delete('/deleteBatch/:batch_no', async (req, res) => {
-    const { batch_no} = req.params;
+    const { batch_no } = req.params;
     try {
         await db.query("DELETE FROM inventorybatch WHERE batch_no = ?", [batch_no]);
         res.status(200).json({ message: "Inventory batch deleted successfully!" });
