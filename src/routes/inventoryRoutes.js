@@ -31,11 +31,11 @@ router.get("/allBatchcount", async (req, res) => {
             SELECT 
                 i.inventoryItem_id,
                 i.item_name,
-                SUM(ib.quantity) AS total_quantity,
+                COALESCE(SUM(ib.quantity), 0) AS total_quantity,
                 i.outOfStockLevel
             FROM 
                 inventory i
-            JOIN 
+            LEFT JOIN 
                 inventorybatch ib 
             ON 
                 i.inventoryItem_id = ib.inventoryItem_id
@@ -44,10 +44,18 @@ router.get("/allBatchcount", async (req, res) => {
         `);
 
         // Add stock status to each inventory item
-        const inventoryWithStatus = inventory.map(item => { // Map through each item in the inventory array
-            const status = item.total_quantity < item.outOfStockLevel ? "Out of Stock" : "In Stock";
+        const inventoryWithStatus = inventory.map(item => {
+            let status;
+            if (item.total_quantity == 0) {
+                status = "Out of Stock";
+            } else if (item.total_quantity < item.outOfStockLevel) {
+                status = "Limited stock";
+            } else {
+                status = "In Stock";
+            }
+
             return {
-                ...item,//copy all the properties of the item object to the new object
+                ...item, // Copy all the properties of the item object to the new object
                 status // Add the stock status to the new object
             };
         });

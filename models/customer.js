@@ -9,20 +9,20 @@ module.exports = (sequelize) => {
     },
     firstName: {
       type: DataTypes.STRING(10),
-      allowNull: false,
+      allowNull: true,
     },
     lastName: {
       type: DataTypes.STRING(20),
-      allowNull: false,
+      allowNull: true,
     },
     email: {
       type: DataTypes.STRING(50),
-      allowNull: false,
-      unique: true,
+      allowNull: true,
+      // unique: true,
     },
     type: {
       type: DataTypes.ENUM('Regular', 'Normal'),
-      allowNull: false,
+      allowNull: true,
     },
  },
   {

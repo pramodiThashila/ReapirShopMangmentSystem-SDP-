@@ -288,19 +288,24 @@ router.post(
 
             // Check if email exists
             const [user] = await db.query("SELECT * FROM employees WHERE email = ?", [email]);
-            if (user.length === 0) return res.status(400).json({ message: "Invalid email " });
+            if (user.length === 0) return res.status(400).json({ message: "Invalid email" });
 
             // Compare password
             const isMatch = await bcrypt.compare(password, user[0].password);
-            if (!isMatch) return res.status(400).json({ message: "Invalid  password" });
+            if (!isMatch) return res.status(400).json({ message: "Invalid password" });
 
-            res.status(200).json({success: true, message: "Login successful" });
+            // Return user details (username and role)
+            res.status(200).json({
+                success: true,
+                message: "Login successful",
+                username: user[0].username,
+                role: user[0].role,
+            });
         } catch (error) {
-            res.status(500).json({success: false, error: error.message });
+            res.status(500).json({ success: false, error: error.message });
         }
     }
 );
-
 
 
 

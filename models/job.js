@@ -22,10 +22,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: false,
     },
-    estimated_time: {
-      type: DataTypes.TIME,
-      allowNull: false,
-    },
     feedback: {
       type: DataTypes.TEXT,
       allowNull: true,

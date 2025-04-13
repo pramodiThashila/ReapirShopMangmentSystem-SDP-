@@ -15,6 +15,7 @@ const inventoryRoutes = require("./src/routes/inventoryRoutes");
 const jobUsedInventoryRoutes = require("./src/routes/jobUsedInventory");
 const inventoryBatchRoutes = require("./src/routes/InventoryBatch");
 const invoiceRoutes = require("./src/routes/invoiceRoutes");
+const customerJobProductRegister = require("./src/routes/customerJobProductRegister"); // Import the new route
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/jobusedInventory", jobUsedInventoryRoutes);
 app.use("/api/inventoryBatch", inventoryBatchRoutes);
 app.use("/api/invoice", invoiceRoutes);
+app.use("/api/customerJobProductRegister", customerJobProductRegister);
 
 const PORT = process.env.PORT || 5000;
 

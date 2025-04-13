@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         phone_number: {
           type: DataTypes.STRING(10),
-          unique: true,
+          //unique: true,
           allowNull: false,
         },
       },
