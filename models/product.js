@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     model_no: {
       type: DataTypes.STRING(30),
-      unique: true,
+      //unique: true,
       allowNull: false,
     },
     product_image: {

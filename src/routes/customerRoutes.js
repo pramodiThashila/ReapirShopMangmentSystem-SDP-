@@ -52,7 +52,7 @@ router.post(
 
             for (let phone of phone_number) {
                 const [existingPhone] = await db.query(
-                    "SELECT * FROM customer_telephones WHERE phone_number = ?",
+                    "SELECT * FROM telephones_customer WHERE phone_number = ?",
                     [phone]
                 );
                 if (existingPhone.length > 0) {
@@ -71,7 +71,7 @@ router.post(
             // Insert multiple phone numbers
             if (phone_number.length > 0) {
                 const phoneValues = phone_number.map(phone => [customerId, phone]);
-                await db.query("INSERT INTO customer_telephones (customer_id, phone_number) VALUES ?", [phoneValues]);
+                await db.query("INSERT INTO telephones_customer (customer_id, phone_number) VALUES ?", [phoneValues]);
             }
 
             res.status(201).json({ message: "Customer registered successfully!" });
@@ -120,10 +120,10 @@ router.put(
             );
 
             // Update multiple phone numbers
-            await db.query("DELETE FROM customer_telephones WHERE customer_id = ?", [id]);
+            await db.query("DELETE FROM telephones_customer WHERE customer_id = ?", [id]);
             if (phone_number && phone_number.length > 0) {
                 const phoneValues = phone_number.map(phone => [id, phone]);
-                await db.query("INSERT INTO customer_telephones (customer_id, phone_number) VALUES ?", [phoneValues]);
+                await db.query("INSERT INTO telephones_customer (customer_id, phone_number) VALUES ?", [phoneValues]);
             }
 
             res.status(200).json({ message: "Customer updated successfully!" });
@@ -178,7 +178,7 @@ router.get("/all", async (req, res) => {
     try {
         // Fetch all customers and their phone numbers
         const [customersData] = await db.query(
-            "SELECT c.*, GROUP_CONCAT(t.phone_number) AS phone_number FROM customers c LEFT JOIN customer_telephones t ON c.customer_id = t.customer_id GROUP BY c.customer_id"
+            "SELECT c.*, GROUP_CONCAT(t.phone_number) AS phone_number FROM customers c LEFT JOIN telephones_customer t ON c.customer_id = t.customer_id GROUP BY c.customer_id"
         );
 
         // Format the phoneNumbers to an array
@@ -200,7 +200,7 @@ router.get("/:id", async (req, res) => {
     try {
         // Fetch customer details along with their phone numbers
         const [customerData] = await db.query(
-            "SELECT c.*, GROUP_CONCAT(t.phone_number) AS phone_number FROM customers c LEFT JOIN customer_telephones t ON c.customer_id = t.customer_id WHERE c.customer_id = ? GROUP BY c.customer_id",
+            "SELECT c.*, GROUP_CONCAT(t.phone_number) AS phone_number FROM customers c LEFT JOIN telephones_customer t ON c.customer_id = t.customer_id WHERE c.customer_id = ? GROUP BY c.customer_id",
             [id]
         );
 
@@ -224,7 +224,7 @@ router.get("/phone/:phone_number", async (req, res) => {
     const { phone_number } = req.params;
     try {
         const [customer] = await db.query(
-            "SELECT c.* FROM customers c JOIN customer_telephones t ON c.customer_id = t.customer_id WHERE t.phone_number = ?",
+            "SELECT c.* FROM customers c JOIN telephones_customer t ON c.customer_id = t.customer_id WHERE t.phone_number = ?",
             [phone_number]
         );
         if (customer.length === 0) {

@@ -10,7 +10,7 @@ router.post('/add/:jobId/:inventoryId/:batchNo', [
 ], async (req, res) => {
     const { jobId, inventoryId, batchNo } = req.params;
     const { Quantity_Used } = req.body;
-    console.log(batchNo,inventoryId);
+    console.log(jobId,batchNo,inventoryId,Quantity_Used);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -53,6 +53,43 @@ router.post('/add/:jobId/:inventoryId/:batchNo', [
         );
 
         res.status(201).json({ message: "Job used inventory added successfully!", id: result.insertId });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get used inventory list by job ID
+router.get('/usedinventory/:jobId', async (req, res) => {
+    const { jobId } = req.params;
+
+    try {
+        // Query to retrieve used inventory details for the given job ID
+        const [usedInventory] = await db.query(`
+            SELECT 
+                jui.job_id,
+                jui.inventoryItem_id,
+                i.item_name ,
+                jui.batch_no,
+                jui.quantity,
+                jui.total ,
+                ib.unitprice 
+                
+            FROM 
+                jobusedinventory jui
+            LEFT JOIN 
+                inventorybatch ib ON jui.inventoryItem_id = ib.inventoryItem_id AND jui.batch_no = ib.batch_no
+            LEFT JOIN 
+                inventory i ON jui.inventoryItem_id = i.inventoryItem_id
+            WHERE 
+                jui.job_id = ?
+        `, [jobId]);
+
+        // Check if any used inventory exists for the given job ID
+        if (usedInventory.length === 0) {
+            return res.status(404).json({ message: "No used inventory found for the specified job ID" });
+        }
+
+        res.status(200).json(usedInventory);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

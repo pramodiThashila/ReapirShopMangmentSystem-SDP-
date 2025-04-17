@@ -298,6 +298,7 @@ router.post(
             res.status(200).json({
                 success: true,
                 message: "Login successful",
+                employee_id: user[0].employee_id,
                 username: user[0].username,
                 role: user[0].role,
             });

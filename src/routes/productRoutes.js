@@ -87,7 +87,7 @@ router.get("/:id", async (req, res) => {
 
 // Update Product
 router.put(
-    "/:id",
+    "/updateproduct/:id",
     upload.single("product_image"), // Optional image update
     [
         body("product_name").optional().isLength({ max: 100 }),
