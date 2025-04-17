@@ -1,11 +1,14 @@
 import React from 'react';
 import { Bell, User } from 'lucide-react';
+import { useUser } from '../context/UserContext'; // Import the UserContext
 
 interface NavbarProps {
   onToggleSidebar: () => void;
 }
 
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
+  const { user } = useUser(); // Access the logged-in user details
+
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-3">
       <div className="flex items-center justify-between">
@@ -32,10 +35,14 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             <Bell size={20} />
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-              <User size={20} className="text-gray-500" />
+            {/* Profile Picture with First Letter */}
+            <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">
+              {user?.username?.charAt(0).toUpperCase() || <User size={20} />}
             </div>
-            <span className="text-sm font-medium text-gray-700">Admin User</span>
+            {/* Display Username */}
+            <span className="text-sm font-medium text-gray-700">
+              {user?.username || 'Guest'}
+            </span>
           </div>
         </div>
       </div>

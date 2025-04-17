@@ -1,16 +1,43 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap } from 'lucide-react';
+import { useUser } from '../context/UserContext.tsx';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { login } = useUser();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add authentication logic here
-    navigate('/');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/employees/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
+      }
+
+      const data = await response.json();
+
+      // Store user details in context
+      login({
+        employee_id: data.employee_id,
+        username: data.username,
+        role: data.role,
+      });
+
+      // Redirect to the dashboard
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Login failed:', error);
+      alert('Invalid credentials');
+    }
   };
 
   return (

@@ -19,7 +19,7 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/employees', icon: UserCog, label: 'Employees', subItems: [
       { path: '/employees', label: 'View Employees' },
       { path: '/employees/register', label: 'Add Employee' },
