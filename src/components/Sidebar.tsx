@@ -12,7 +12,8 @@ import {
   ShoppingCart,
   BarChart2,
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext'; // Import useUser hook
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -28,6 +29,7 @@ const menuItems = [
   { path: '/repairs', icon: Wrench, label: 'Jobs', subItems: [
       { path: '/jobAndCustomer/register', label: 'Register Job' },
       { path: '/jobs/view', label: 'View Jobs' },
+      {path: '/jobs/myJobs', label: 'My Jobs'},
     ],
   },
   { path: '/customers', icon: Users, label: 'Customer Details', subItems: [
@@ -56,9 +58,16 @@ const menuItems = [
 
 export default function Sidebar({ isCollapsed }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate(); // Add navigate hook
+  const { logout } = useUser(); // Get logout function from context
+
+  // Handle logout click
+  const handleLogout = () => {
+    logout(); // Call logout function from context
+    navigate('/login'); // Redirect to login page
+  };
 
   return (
-    
     <div
       className={`bg-gray-900 text-white  ${
         isCollapsed ? 'w-0 overflow-hidden' : 'w-64'
@@ -100,7 +109,11 @@ export default function Sidebar({ isCollapsed }: SidebarProps) {
                 </div>
               );
             })}
-            <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 w-full mt-8">
+            {/* Updated logout button with onClick handler */}
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 w-full mt-8"
+            >
               <LogOut size={20} />
               <span>Logout</span>
             </button>

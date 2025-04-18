@@ -15,7 +15,8 @@ import SupplierTable from './pages/SupplierTable';
 import InvoiceForm from './pages/FinalInvoice';
 import RegisterJobCustomerProduct from './pages/RegisterJobAndCustomer';
 import ViewJobs from './pages/JobDetails';
-import { UserProvider } from './context/UserContext'; // Import UserProvider
+import { UserProvider } from './context/UserContext'; 
+import MyJobs from './pages/MyJobs';
 
 function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -50,6 +51,7 @@ function App() {
                       <Route path="/finalInvoice" element={<InvoiceForm />} />
                       <Route path="/jobAndCustomer/register" element={<RegisterJobCustomerProduct />} />
                       <Route path="/jobs/view" element={<ViewJobs />} />
+                      <Route path="/jobs/myJobs" element={<MyJobs />} />
                     </Routes>
                   </main>
                 </div>

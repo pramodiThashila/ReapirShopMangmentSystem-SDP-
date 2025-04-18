@@ -14,6 +14,9 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
   onClose,
   refreshData,
 }) => {
+  // Add a new state for edit mode
+  const [isEditMode, setIsEditMode] = useState(false);
+
   const [customer, setCustomer] = useState({
     firstName: "",
     lastName: "",
@@ -35,11 +38,26 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
     repairStatus: "",
   });
 
+  // Store original values for cancel operation
+  const [originalProduct, setOriginalProduct] = useState({
+    productName: "",
+    model: "",
+    modelNo: "",
+  });
+
+  const [originalJob, setOriginalJob] = useState({
+    repairDescription: "",
+    receiveDate: "",
+    employeeID: "",
+    repairStatus: "",
+  });
+
   const [productImage, setProductImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [originalImagePreview, setOriginalImagePreview] = useState<string | null>(null);
   const [employees, setEmployees] = useState<{ employee_id: string; first_name: string; last_name?: string }[]>([]);
   const [message, setMessage] = useState("");
-  const [errors, setErrors] = useState<{ [key: string]: string }>({}); 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Fetch employee list
   useEffect(() => {
@@ -64,20 +82,27 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
           const jobResponse = await axios.get(`http://localhost:5000/api/jobs/eachjob/${jobId}`);
           const jobData = jobResponse.data;
 
-          setProduct({
+          const productData = {
             productName: jobData.product_name || "",
             model: jobData.model || "",
             modelNo: jobData.model_no || "",
-          });
+          };
 
-          setJob({
+          const jobFormData = {
             repairDescription: jobData.repair_description || "",
             receiveDate: jobData.receive_date ? jobData.receive_date.split("T")[0] : "",
             employeeID: jobData.employee_id || "",
             repairStatus: jobData.repair_status || "pending",
-          });
+          };
 
+          setProduct(productData);
+          setOriginalProduct(productData);
+          
+          setJob(jobFormData);
+          setOriginalJob(jobFormData);
+          
           setImagePreview(jobData.product_image || null);
+          setOriginalImagePreview(jobData.product_image || null);
 
           // Fetch customer data if customer_id is available
           if (jobData.customer_id) {
@@ -115,6 +140,8 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
   }, [jobId]);
 
   const handleProductChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (!isEditMode) return;
+    
     const { name, value } = e.target;
     setProduct((prev) => ({
       ...prev,
@@ -127,6 +154,8 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
   };
 
   const handleJobChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    if (!isEditMode) return;
+    
     const { name, value } = e.target;
     setJob((prev) => ({
       ...prev,
@@ -139,15 +168,41 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isEditMode) return;
+    
     if (!e.target.files) return;
     const file = e.target.files[0];
     setProductImage(file);
     setImagePreview(URL.createObjectURL(file));
   };
 
+  // Toggle edit mode
+  const toggleEditMode = () => {
+    if (isEditMode) {
+      // If switching from edit mode to view mode, cancel changes
+      handleCancel();
+    } else {
+      // If switching to edit mode, just toggle the mode
+      setIsEditMode(true);
+    }
+  };
+
+  // Cancel changes and return to view mode
+  const handleCancel = () => {
+    setProduct(originalProduct);
+    setJob(originalJob);
+    setImagePreview(originalImagePreview);
+    setProductImage(null);
+    setErrors({});
+    setMessage("");
+    setIsEditMode(false);
+  };
+
   // Update the handleSubmit function to use the combined API
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!isEditMode) return;
+    
     setMessage("");
     setErrors({});
     
@@ -163,9 +218,11 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
       
       // Convert status to match backend's expected format
       const statusMap: Record<string, string> = {
-        "pending": "pending",
-        "on progress": "on Progress", 
-        "complete": "completed"
+        "Pending": "pending",
+        "On progress": "on progress", 
+        "Completed": "completed",
+        "Cancelled": "cancelled"
+
       };
       formData.append("repair_status", statusMap[job.repairStatus] || job.repairStatus);
       
@@ -207,8 +264,16 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
 
       console.log("Update successful:", response.data);
       setMessage("Details updated successfully!");
+      
+      // Update original values to match the new values
+      setOriginalProduct(product);
+      setOriginalJob(job);
+      setOriginalImagePreview(imagePreview);
+      
+      // Exit edit mode
+      setIsEditMode(false);
+      
       refreshData();
-      onClose();
     } catch (error: any) {
       // Error handling remains the same
       console.error("Update failed:", error);
@@ -239,6 +304,19 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
     }
   };
 
+  
+  useEffect(() => {
+    // When a success message is displayed, set a timer to clear it after 2 seconds
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage("");
+      }, 2000);
+
+      // Clean up the timer if the component unmounts or message changes
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
   if (!isOpen) return null;
 
   return (
@@ -246,9 +324,26 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
       <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white z-10 px-8 py-6 border-b border-gray-200">
           <div className="flex justify-between items-center">
-            <h2 className="text-3xl font-bold text-gray-800">Update Job & Product</h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-3xl font-bold text-gray-800">
+                {isEditMode ? "Edit Job & Product" : "Job & Product Details"}
+              </h2>
+              
+              {/* Edit/Cancel Button */}
+              <button 
+                onClick={toggleEditMode}
+                className={`px-4 py-2 rounded-lg text-white font-medium ${
+                  isEditMode 
+                    ? "bg-gray-500 hover:bg-gray-600" 
+                    : "bg-blue-500 hover:bg-blue-600"
+                } transition-colors shadow-sm`}
+              >
+                {isEditMode ? "Cancel Edit" : "Edit"}
+              </button>
+            </div>
+            
             <button 
-              onClick={onClose}
+              onClick={isEditMode ? handleCancel : onClose}
               className="text-gray-500 hover:text-gray-700 transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -256,12 +351,19 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
               </svg>
             </button>
           </div>
+          
+          {/* Success Message */}
+          {message && (
+            <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-lg">
+              {message}
+            </div>
+          )}
         </div>
 
         <div className="p-8">
           <form onSubmit={handleSubmit} className="space-y-10">
-            {/* Customer Details Section (Read-only) */}
-            <div className="bg-blue-50 p-6 rounded-xl shadow-sm">
+            {/* Customer Details Section (Always Read-only) */}
+            <div className="bg-gray-100 p-6 rounded-xl shadow-sm">
               <h3 className="text-2xl font-bold text-blue-800 mb-4">Customer Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -294,8 +396,8 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
             </div>
 
             {/* Product Details Section */}
-            <div className="bg-green-50 p-6 rounded-xl shadow-sm">
-              <h3 className="text-2xl font-bold text-green-800 mb-4">Product Details</h3>
+            <div className="bg-gray-100 p-6 rounded-xl shadow-sm">
+              <h3 className="text-2xl font-bold text-blue-800 mb-4">Product Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-lg font-medium text-gray-700">Product Name</label>
@@ -304,8 +406,12 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
                     name="productName"
                     value={product.productName}
                     onChange={handleProductChange}
-                    className="w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
+                    readOnly={!isEditMode}
+                    className={`w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg ${
+                      isEditMode ? "focus:ring-2 focus:ring-green-500 focus:outline-none" : "bg-gray-100 cursor-not-allowed"
+                    }`}
                   />
+                  {errors.productName && <p className="mt-1 text-red-600">{errors.productName}</p>}
                 </div>
                 <div>
                   <label className="block text-lg font-medium text-gray-700">Model</label>
@@ -314,8 +420,12 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
                     name="model"
                     value={product.model}
                     onChange={handleProductChange}
-                    className="w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
+                    readOnly={!isEditMode}
+                    className={`w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg ${
+                      isEditMode ? "focus:ring-2 focus:ring-green-500 focus:outline-none" : "bg-gray-100 cursor-not-allowed"
+                    }`}
                   />
+                  {errors.model && <p className="mt-1 text-red-600">{errors.model}</p>}
                 </div>
                 <div>
                   <label className="block text-lg font-medium text-gray-700">Model Number</label>
@@ -324,8 +434,12 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
                     name="modelNo"
                     value={product.modelNo}
                     onChange={handleProductChange}
-                    className="w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
+                    readOnly={!isEditMode}
+                    className={`w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg ${
+                      isEditMode ? "focus:ring-2 focus:ring-green-500 focus:outline-none" : "bg-gray-100 cursor-not-allowed"
+                    }`}
                   />
+                  {errors.modelNo && <p className="mt-1 text-red-600">{errors.modelNo}</p>}
                 </div>
                 <div>
                   <label className="block text-lg font-medium text-gray-700">Product Image</label>
@@ -344,23 +458,26 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
                         </div>
                       )}
                     </div>
-                    <div className="flex-grow">
-                      <label className="w-full flex flex-col items-center px-4 py-4 bg-white text-green-600 rounded-lg border-2 border-green-300 border-dashed cursor-pointer hover:bg-green-50">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                        </svg>
-                        <span className="mt-2 text-base">Select new image</span>
-                        <input type="file" onChange={handleImageChange} className="hidden" />
-                      </label>
-                    </div>
+                    {isEditMode && (
+                      <div className="flex-grow">
+                        <label className="w-full flex flex-col items-center px-4 py-4 bg-white text-green-600 rounded-lg border-2 border-green-300 border-dashed cursor-pointer hover:bg-green-50">
+                          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                          </svg>
+                          <span className="mt-2 text-base">Select new image</span>
+                          <input type="file" onChange={handleImageChange} className="hidden" />
+                        </label>
+                        {errors.productImage && <p className="mt-1 text-red-600">{errors.productImage}</p>}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Job Details Section */}
-            <div className="bg-purple-50 p-6 rounded-xl shadow-sm">
-              <h3 className="text-2xl font-bold text-purple-800 mb-4">Job Details</h3>
+            <div className="bg-gray-100 p-6 rounded-xl shadow-sm">
+              <h3 className="text-2xl font-bold text-blue-800 mb-4">Job Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
                   <label className="block text-lg font-medium text-gray-700">Repair Description</label>
@@ -368,9 +485,13 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
                     name="repairDescription"
                     value={job.repairDescription}
                     onChange={handleJobChange}
-                    className="w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                    readOnly={!isEditMode}
+                    className={`w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg ${
+                      isEditMode ? "focus:ring-2 focus:ring-purple-500 focus:outline-none" : "bg-gray-100 cursor-not-allowed"
+                    }`}
                     rows={4}
                   ></textarea>
+                  {errors.repairDescription && <p className="mt-1 text-red-600">{errors.repairDescription}</p>}
                 </div>
                 <div>
                   <label className="block text-lg font-medium text-gray-700">Repair Status</label>
@@ -378,12 +499,18 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
                     name="repairStatus"
                     value={job.repairStatus}
                     onChange={handleJobChange}
-                    className="w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                    disabled={!isEditMode}
+                    className={`w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg ${
+                      isEditMode ? "focus:ring-2 focus:ring-purple-500 focus:outline-none" : "bg-gray-100 cursor-not-allowed"
+                    }`}
                   >
                     <option value="pending">Pending</option>
                     <option value="on progress">On Progress</option>
-                    <option value="complete">Complete</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+
                   </select>
+                  {errors.repairStatus && <p className="mt-1 text-red-600">{errors.repairStatus}</p>}
                 </div>
                 <div>
                   <label className="block text-lg font-medium text-gray-700">Receive Date</label>
@@ -392,8 +519,12 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
                     name="receiveDate"
                     value={job.receiveDate}
                     onChange={handleJobChange}
-                    className="w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                    readOnly={!isEditMode}
+                    className={`w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg ${
+                      isEditMode ? "focus:ring-2 focus:ring-purple-500 focus:outline-none" : "bg-gray-100 cursor-not-allowed"
+                    }`}
                   />
+                  {errors.receiveDate && <p className="mt-1 text-red-600">{errors.receiveDate}</p>}
                 </div>
                 <div>
                   <label className="block text-lg font-medium text-gray-700">Assigned Employee</label>
@@ -401,7 +532,10 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
                     name="employeeID"
                     value={job.employeeID}
                     onChange={handleJobChange}
-                    className="w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                    disabled={!isEditMode}
+                    className={`w-full mt-2 px-5 py-3 text-lg border border-gray-300 rounded-lg ${
+                      isEditMode ? "focus:ring-2 focus:ring-purple-500 focus:outline-none" : "bg-gray-100 cursor-not-allowed"
+                    }`}
                   >
                     <option value="">Select Employee</option>
                     {employees.map((employee) => (
@@ -410,6 +544,7 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
                       </option>
                     ))}
                   </select>
+                  {errors.employeeID && <p className="mt-1 text-red-600">{errors.employeeID}</p>}
                 </div>
               </div>
             </div>
@@ -418,17 +553,20 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
             <div className="sticky bottom-0 bg-white pb-6 pt-4 flex justify-end gap-4">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={isEditMode ? handleCancel : onClose}
                 className="px-8 py-4 text-lg font-medium bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors shadow-sm"
               >
-                Cancel
+                {isEditMode ? "Cancel" : "Close"}
               </button>
-              <button
-                type="submit"
-                className="px-8 py-4 text-lg font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-              >
-                Update Job
-              </button>
+              
+              {isEditMode && (
+                <button
+                  type="submit"
+                  className="px-8 py-4 text-lg font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                  Save Changes
+                </button>
+              )}
             </div>
           </form>
         </div>
