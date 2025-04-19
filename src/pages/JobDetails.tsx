@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import UpdateJobAndProduct from "./UpdateJobAndProduct";
+import { useNavigate } from 'react-router-dom';
 
 const JobDetails = () => {
   const [jobs, setJobs] = useState<{ 
@@ -33,6 +34,7 @@ const JobDetails = () => {
   const [alertMessage, setAlertMessage] = useState<string>("");
   const [alertType, setAlertType] = useState<"success" | "error" | "warning" | "info">("info");
   const [showAlert, setShowAlert] = useState<boolean>(false);
+  const navigate = useNavigate(); 
 
   // Fetch all jobs
   const fetchJobs = async () => {
@@ -156,24 +158,70 @@ const JobDetails = () => {
       )
     : jobs;
 
+  // Add this function to handle advance invoice button click
+  const handleAdvanceInvoiceClick = () => {
+    if (!selectedJob) {
+      // Show alert if no job is selected
+      setAlertMessage("Please select a job first.");
+      setAlertType("warning");
+      setShowAlert(true);
+      
+      // Auto hide alert after 3 seconds
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
+      return;
+    }
+    
+    navigate(`/advance-payment-invoice?jobId=${selectedJob.job_id}`);
+  };
+
   return (
     <div className="max-w-6xl mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
-    
+      {/* Alert message display */}
+      {showAlert && (
+        <div className={`mb-4 p-4 rounded-lg ${
+          alertType === "success" ? "bg-green-100 text-green-800" :
+          alertType === "error" ? "bg-red-100 text-red-800" :
+          alertType === "warning" ? "bg-yellow-100 text-yellow-800" :
+          "bg-blue-100 text-blue-800"
+        }`}>
+          {alertMessage}
+        </div>
+      )}
 
       {/* Job Table with Improved UI */}
       <div className="container mx-auto mt-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">JOB Details</h1>
           
-          <button
-            onClick={handleInventoryUpdateClick}
-            className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-sm flex items-center"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            Update Used Inventory
-          </button>
+          <div className="flex space-x-3">
+            <button
+              onClick={handleAdvanceInvoiceClick}
+              className={`px-4 py-2 text-white rounded-lg shadow-sm flex items-center ${
+                selectedJob ? "bg-blue-500 hover:bg-blue-600" : "bg-blue-300 cursor-not-allowed"
+              } transition-colors`}
+              disabled={!selectedJob}
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              Create Advance Invoice
+            </button>
+            
+            <button
+              onClick={handleInventoryUpdateClick}
+              className={`px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-sm flex items-center ${
+                selectedJob ? "" : "bg-yellow-300 cursor-not-allowed"
+              }`}
+              disabled={!selectedJob}
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              Update Used Inventory
+            </button>
+          </div>
         </div>
 
         {/* Search Bar - Now with functionality */}

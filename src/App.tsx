@@ -17,6 +17,7 @@ import RegisterJobCustomerProduct from './pages/RegisterJobAndCustomer';
 import ViewJobs from './pages/JobDetails';
 import { UserProvider } from './context/UserContext'; 
 import MyJobs from './pages/MyJobs';
+import AdvancePaymentInvoice from './pages/AdvancePaymentInvoice';
 
 function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -52,6 +53,7 @@ function App() {
                       <Route path="/jobAndCustomer/register" element={<RegisterJobCustomerProduct />} />
                       <Route path="/jobs/view" element={<ViewJobs />} />
                       <Route path="/jobs/myJobs" element={<MyJobs />} />
+                      <Route path="/advance-payment-invoice" element={<AdvancePaymentInvoice />} />
                     </Routes>
                   </main>
                 </div>
