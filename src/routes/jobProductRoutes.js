@@ -16,7 +16,7 @@ router.put(
         // Job validation
         body("repair_description").optional().isLength({ max: 255 })
             .withMessage("Repair description cannot exceed 255 characters"),
-        body("repair_status").optional().isIn(["pending", "on Progress", "completed", "cancelled"])
+        body("repair_status").optional().isIn(["pending", "on progress", "completed", "cancelled"])
             .withMessage("Invalid repair status"),
         body("handover_date").optional().isISO8601()
             .withMessage("Invalid handover date format"),

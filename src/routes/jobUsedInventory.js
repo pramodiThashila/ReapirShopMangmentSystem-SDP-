@@ -68,12 +68,11 @@ router.get('/usedinventory/:jobId', async (req, res) => {
             SELECT 
                 jui.job_id,
                 jui.inventoryItem_id,
-                i.item_name ,
+                i.item_name,
                 jui.batch_no,
                 jui.quantity,
-                jui.total ,
+                jui.total,
                 ib.unitprice 
-                
             FROM 
                 jobusedinventory jui
             LEFT JOIN 
@@ -86,11 +85,33 @@ router.get('/usedinventory/:jobId', async (req, res) => {
 
         // Check if any used inventory exists for the given job ID
         if (usedInventory.length === 0) {
-            return res.status(404).json({ message: "No used inventory found for the specified job ID" });
+            return res.status(404).json({ 
+                message: "No used inventory found for the specified job ID",
+                items: [],
+                totalAmount: 0 
+            });
         }
 
-        res.status(200).json(usedInventory);
+        // Calculate the total amount of all used inventory items
+        const [totalResult] = await db.query(`
+            SELECT 
+                SUM(total) as grandTotal
+            FROM 
+                jobusedinventory
+            WHERE 
+                job_id = ?
+        `, [jobId]);
+
+        // Get the grand total from the result or default to 0
+        const grandTotal = totalResult[0].grandTotal || 0;
+
+        // Return both the individual items and the calculated grand total
+        res.status(200).json({
+            items: usedInventory,
+            totalAmount: grandTotal
+        });
     } catch (err) {
+        console.error('Error fetching used inventory:', err);
         res.status(500).json({ error: err.message });
     }
 });

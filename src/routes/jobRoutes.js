@@ -98,6 +98,63 @@ router.get("/all", async (req, res) => {
     }
 });
 
+// Get Jobs by Employee ID
+router.get("/myjobs/:employeeId", async (req, res) => {
+    try {
+        const { employeeId } = req.params;
+        
+        // Validate employeeId is a number
+        if (isNaN(employeeId)) {
+            return res.status(400).json({ 
+                error: "Invalid employee ID. Employee ID must be a number." 
+            });
+        }
+        
+        const [jobs] = await db.query(`
+            SELECT 
+                j.job_id,
+                j.repair_description,
+                j.repair_status,
+                j.handover_date,
+                j.receive_date,
+                j.customer_id,
+                c.firstName AS customer_name,
+                c.lastName,
+                j.employee_id,
+                e.first_name AS employee_name,
+                j.product_id,
+                p.product_image,
+                p.product_name,
+                p.model,
+                p.model_no
+            FROM 
+                jobs j
+            LEFT JOIN 
+                customers c ON j.customer_id = c.customer_id
+            LEFT JOIN 
+                employees e ON j.employee_id = e.employee_id
+            LEFT JOIN 
+                products p ON j.product_id = p.product_id
+            WHERE 
+                j.employee_id = ?
+            ORDER BY
+                j.receive_date DESC
+        `, [employeeId]);
+
+        if (jobs.length === 0) {
+            return res.status(200).json({
+                message: "No jobs found for this employee",
+                jobs: []
+            });
+        }
+
+        res.status(200).json(jobs);
+    } catch (error) {
+        console.error("Error fetching employee jobs:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.get("/eachjob/:id", async (req, res) => {
     try {
         const [jobs] = await db.query(`
@@ -206,6 +263,9 @@ router.put(
         }
     }
 );
+
+
+
 
 // Delete Job
 router.delete("/:id", async (req, res) => {

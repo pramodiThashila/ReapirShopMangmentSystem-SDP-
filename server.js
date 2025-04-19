@@ -18,6 +18,8 @@ const invoiceRoutes = require("./src/routes/invoiceRoutes");
 const customerJobProductRegister = require("./src/routes/customerJobProductRegister"); // Import the new route
 const uploadRoutes = require("./src/routes/uploadRoutes")
 const jobProductRoutes = require("./src/routes/jobProductRoutes");
+const advanceInvoiceRoutes = require('./src/routes/advanceInvoiceRoutes');
+
 
 
 const app = express();
@@ -40,6 +42,7 @@ app.use("/api/invoice", invoiceRoutes);
 app.use("/api/customerJobProductRegister", customerJobProductRegister);
 app.use("/api", uploadRoutes);
 app.use("/api/jobProduct", jobProductRoutes);
+app.use('/api/advance-invoice', advanceInvoiceRoutes);
 
 
 const PORT = process.env.PORT || 5000;

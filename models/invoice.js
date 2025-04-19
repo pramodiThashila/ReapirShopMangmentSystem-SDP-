@@ -21,10 +21,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
     },
-    Advance_Amount: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: true,
-    },
     Labour_Cost: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
@@ -41,16 +37,28 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    created_by: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    warranty_exp_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    
   },
   {
     tableName: 'Invoice', // Explicitly set the table name
     timestamps: false, // Disable createdAt and updatedAt
   });
 
+
+
   Invoice.associate = (models) => {
     Invoice.belongsTo(models.Job, { foreignKey: 'job_id', onDelete: 'RESTRICT' });
     Invoice.belongsTo(models.Customer, { foreignKey: 'customer_id', onDelete: 'RESTRICT' });
     Invoice.belongsTo(models.Employee, { foreignKey: 'employee_id', onDelete: 'RESTRICT' });
+    Invoice.belongsTo(models.AdvanceInvoice, { foreignKey: 'AdvanceInvoice_Id', onDelete: 'RESTRICT' });
   };
 
   return Invoice;
