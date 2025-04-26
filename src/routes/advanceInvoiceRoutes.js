@@ -120,7 +120,8 @@ router.post(
       
       res.status(201).json({
         message: 'Advance invoice created successfully',
-        invoice: newInvoice[0]
+        invoice: newInvoice[0],
+        createdInvoiceId: result.insertId
       });
       
     } catch (error) {

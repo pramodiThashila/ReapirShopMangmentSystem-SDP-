@@ -10,6 +10,6 @@ cloudinary.config({
     api_secret: "W-zjs22NgNsNsAr9Dw3nLaWyi7M", 
 });
 
-console.log("Cloudinary Config in cloudinary.js:", cloudinary.config()); // Debug log
+//console.log("Cloudinary Config in cloudinary.js:", cloudinary.config()); // Debug log
 
 module.exports = cloudinary;

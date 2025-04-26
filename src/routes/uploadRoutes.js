@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { upload, uploadToCloudinary } = require("../../middleware/multer"); // Fixed path
+const { upload, uploadToCloudinary } = require("../../middleware/multer"); 
 
 // API to upload an image
 router.post("/upload", upload.single("image"), async (req, res) => {

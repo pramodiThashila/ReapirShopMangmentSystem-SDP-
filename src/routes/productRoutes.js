@@ -120,6 +120,62 @@ router.put(
     }
 );
 
+// Get all products for a specific customer
+router.get("/customer/:customerId", async (req, res) => {
+    try {
+        const { customerId } = req.params;
+        
+        // Validate customerId is a number
+        if (isNaN(customerId)) {
+            return res.status(400).json({ 
+                error: "Invalid customer ID format. Must be a number." 
+            });
+        }
+        
+        // First check if the customer exists
+        const [customerCheck] = await db.query(
+            "SELECT customer_id FROM customers WHERE customer_id = ?", 
+            [customerId]
+        );
+        
+        if (customerCheck.length === 0) {
+            return res.status(404).json({ 
+                message: "Customer not found" 
+            });
+        }
+        
+        // Get all products for this customer with additional information
+        const [products] = await db.query(`
+            SELECT 
+                p.*    
+            FROM 
+                products p
+            WHERE 
+                p.customer_id = ?
+            ORDER BY 
+                p.product_id DESC
+        `, [customerId]);
+        
+        if (products.length === 0) {
+            return res.status(200).json({
+                message: "No products found for this customer",
+                products: []
+            });
+        }
+        
+        res.status(200).json({
+            message: "Products retrieved successfully",
+            
+            products: products
+        });
+    } catch (error) {
+        console.error("Error fetching customer products:", error);
+        res.status(500).json({ 
+            error: error.message || "An error occurred while retrieving products" 
+        });
+    }
+});
+
 // Delete Product
 router.delete("/:id", async (req, res) => {
     try {

@@ -127,8 +127,8 @@ router.post(
 
             // Register Product with Cloudinary URL
             const [productResult] = await connection.query(
-                "INSERT INTO products (product_name, model, model_no, product_image) VALUES (?, ?, ?, ?)",
-                [product_name, model, model_no, product_image] // product_image is now the Cloudinary URL
+                "INSERT INTO products (product_name, model, model_no, product_image,customer_id) VALUES (?, ?, ?,?, ?)",
+                [product_name, model, model_no, product_image,customerID] // product_image is now the Cloudinary URL
             );
             const productID = productResult.insertId;
 
@@ -218,7 +218,7 @@ router.post(
     }
 );
 
-// Add after your existing route
+
 
 // Update both job and its associated product in a single request
 router.put(
@@ -469,6 +469,686 @@ router.put(
                 }
             }
             
+            // Default error message
+            res.status(500).json({
+                errors: [
+                    {
+                        type: "unknown",
+                        msg: error.message,
+                        path: "unknown",
+                        location: "body"
+                    }
+                ]
+            });
+        } finally {
+            connection.release();
+        }
+    }
+);
+ 
+// Route to register new job and product for existing customer
+router.post(
+    "/registerJobProduct",
+    upload.single("product_image"),
+    [
+        // Customer validation
+        body("customer_id")
+            .notEmpty().withMessage("Customer ID is required")
+            .isInt().withMessage("Customer ID must be an integer"),
+
+        // Product validation
+        body("product_name")
+            .notEmpty().withMessage("Product name is required")
+            .isLength({ max: 100 }).withMessage("Product name cannot exceed 100 characters"),
+        body("model")
+            .notEmpty().withMessage("Model is required")
+            .isLength({ max: 50 }).withMessage("Model cannot exceed 50 characters"),
+        body("model_no")
+            .notEmpty().withMessage("Model number is required")
+            .isLength({ max: 30 }).withMessage("Model number cannot exceed 30 characters"),
+
+        // Job validation
+        body("repairDescription")
+            .notEmpty().withMessage("Repair description is required")
+            .isLength({ max: 255 }).withMessage("Repair description cannot exceed 255 characters"),
+        body("receiveDate")
+            .notEmpty().withMessage("Receive date is required")
+            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)"),
+        body("employeeID")
+            .notEmpty().withMessage("Employee ID is required")
+            .isInt().withMessage("Employee ID must be an integer")
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        try {
+            const { customer_id, product_name, model, model_no, repairDescription, receiveDate, employeeID } = req.body;
+            
+            // Check if customer exists
+            const [existingCustomer] = await connection.query(
+                "SELECT * FROM customers WHERE customer_id = ?",
+                [customer_id]
+            );
+            
+            if (existingCustomer.length === 0) {
+                return res.status(404).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: "Customer not found. Please provide a valid customer ID.",
+                            path: "customer_id",
+                            location: "body"
+                        }
+                    ]
+                });
+            }
+            
+            // Check if employee exists
+            const [existingEmployee] = await connection.query(
+                "SELECT * FROM employees WHERE employee_id = ?",
+                [employeeID]
+            );
+            
+            if (existingEmployee.length === 0) {
+                return res.status(404).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: "Employee not found. Please provide a valid employee ID.",
+                            path: "employeeID",
+                            location: "body"
+                        }
+                    ]
+                });
+            }
+            
+            // Upload to Cloudinary if file exists and store the secure URL
+            let product_image = null;
+            if (req.file) {
+                try {
+                    const result = await uploadToCloudinary(req.file.path, "repair_shop_products");
+                    product_image = result.secure_url; // Cloudinary URL
+                } catch (uploadError) {
+                    console.error("Error uploading to Cloudinary:", uploadError);
+                    throw new Error("Failed to upload product image");
+                }
+            }
+
+            // Register Product with Cloudinary URL
+            const [productResult] = await connection.query(
+                "INSERT INTO products (product_name, model, model_no, product_image,customer_id) VALUES (?, ?, ?, ?,?)",
+                [product_name, model, model_no, product_image,customer_id]
+            );
+            const productID = productResult.insertId;
+
+            // Register Job with the existing customer ID
+            const [jobResult] = await connection.query(
+                "INSERT INTO jobs (repair_description, repair_status, receive_date, customer_id, employee_id, product_id) VALUES (?, ?, ?, ?, ?, ?)",
+                [repairDescription, "pending", receiveDate, customer_id, employeeID, productID]
+            );
+            const jobID = jobResult.insertId;
+
+            // Commit the transaction
+            await connection.commit();
+
+            // Fetch complete job with customer and product details
+            const [jobDetails] = await connection.query(`
+                SELECT 
+                    j.job_id, 
+                    j.repair_description, 
+                    j.repair_status,
+                    j.receive_date,
+                    j.customer_id, 
+                    c.firstName, 
+                    c.lastName,
+                    j.employee_id,
+                    e.first_name AS employee_name,
+                    j.product_id,
+                    p.product_name,
+                    p.model,
+                    p.model_no,
+                    p.product_image
+                FROM jobs j
+                JOIN customers c ON j.customer_id = c.customer_id
+                JOIN employees e ON j.employee_id = e.employee_id
+                JOIN products p ON j.product_id = p.product_id
+                WHERE j.job_id = ?
+            `, [jobID]);
+
+            res.status(201).json({
+                message: "Job and Product registered successfully for existing customer!",
+                jobID,
+                productID,
+                customer_id,
+                data: jobDetails[0]
+            });
+        } catch (error) {
+            await connection.rollback();
+
+            // Handle specific database errors
+            if (error.code === "ER_DUP_ENTRY") {
+                const duplicateField = error.sqlMessage.match(/key '(.+?)'/)?.[1];
+                return res.status(400).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: `Duplicate entry detected for field: ${duplicateField}. Please check your input.`,
+                            path: duplicateField,
+                            location: "body"
+                        }
+                    ]
+                });
+            } else if (error.code === "ER_NO_REFERENCED_ROW_2") {
+                if (error.sqlMessage.includes("FOREIGN KEY (`employee_id`)")) {
+                    return res.status(400).json({
+                        errors: [
+                            {
+                                type: "field",
+                                msg: "Invalid employee ID. Please provide a valid employee ID.",
+                                path: "employeeID",
+                                location: "body"
+                            }
+                        ]
+                    });
+                } else if (error.sqlMessage.includes("FOREIGN KEY (`customer_id`)")) {
+                    return res.status(400).json({
+                        errors: [
+                            {
+                                type: "field",
+                                msg: "Invalid customer ID. Please provide a valid customer ID.",
+                                path: "customer_id",
+                                location: "body"
+                            }
+                        ]
+                    });
+                }
+            }
+
+            // Default error message
+            res.status(500).json({
+                errors: [
+                    {
+                        type: "unknown",
+                        msg: error.message,
+                        path: "unknown",
+                        location: "body"
+                    }
+                ]
+            });
+        } finally {
+            connection.release();
+        }
+    }
+);
+
+// Route to register new job with existing customer and product
+router.post(
+    "/registerJobWithExisting",
+    [
+        // Customer validation
+        body("customer_id")
+            .notEmpty().withMessage("Customer ID is required")
+            .isInt().withMessage("Customer ID must be an integer"),
+
+        // Product validation
+        body("product_id")
+            .notEmpty().withMessage("Product ID is required")
+            .isInt().withMessage("Product ID must be an integer"),
+
+        // Job validation
+        body("repairDescription")
+            .notEmpty().withMessage("Repair description is required")
+            .isLength({ max: 255 }).withMessage("Repair description cannot exceed 255 characters"),
+        body("receiveDate")
+            .notEmpty().withMessage("Receive date is required")
+            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)"),
+        body("employeeID")
+            .notEmpty().withMessage("Employee ID is required")
+            .isInt().withMessage("Employee ID must be an integer")
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        try {
+            const { customer_id, product_id, repairDescription, receiveDate, employeeID } = req.body;
+            
+            // Check if customer exists
+            const [existingCustomer] = await connection.query(
+                "SELECT * FROM customers WHERE customer_id = ?",
+                [customer_id]
+            );
+            
+            if (existingCustomer.length === 0) {
+                return res.status(404).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: "Customer not found. Please provide a valid customer ID.",
+                            path: "customer_id",
+                            location: "body"
+                        }
+                    ]
+                });
+            }
+            
+            // Check if product exists
+            const [existingProduct] = await connection.query(
+                "SELECT * FROM products WHERE product_id = ?",
+                [product_id]
+            );
+            
+            if (existingProduct.length === 0) {
+                return res.status(404).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: "Product not found. Please provide a valid product ID.",
+                            path: "product_id",
+                            location: "body"
+                        }
+                    ]
+                });
+            }
+            
+            // Check if employee exists
+            const [existingEmployee] = await connection.query(
+                "SELECT * FROM employees WHERE employee_id = ?",
+                [employeeID]
+            );
+            
+            if (existingEmployee.length === 0) {
+                return res.status(404).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: "Employee not found. Please provide a valid employee ID.",
+                            path: "employeeID",
+                            location: "body"
+                        }
+                    ]
+                });
+            }
+
+            // Check if there's an active job for this product
+            const [activeJobs] = await connection.query(
+                "SELECT * FROM jobs WHERE product_id = ? AND repair_status != 'completed' AND repair_status != 'cancelled'",
+                [product_id]
+            );
+            
+            if (activeJobs.length > 0) {
+                return res.status(400).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: "This product already has an active repair job. Complete or cancel the existing job before creating a new one.",
+                            path: "product_id",
+                            location: "body"
+                        }
+                    ]
+                });
+            }
+
+            // Register Job with the existing customer ID and product ID
+            const [jobResult] = await connection.query(
+                "INSERT INTO jobs (repair_description, repair_status, receive_date, customer_id, employee_id, product_id) VALUES (?, ?, ?, ?, ?, ?)",
+                [repairDescription, "pending", receiveDate, customer_id, employeeID, product_id]
+            );
+            const jobID = jobResult.insertId;
+
+            // Commit the transaction
+            await connection.commit();
+
+            // Fetch complete job with customer and product details
+            const [jobDetails] = await connection.query(`
+                SELECT 
+                    j.job_id, 
+                    j.repair_description, 
+                    j.repair_status,
+                    j.receive_date,
+                    j.customer_id, 
+                    c.firstName, 
+                    c.lastName,
+                    c.email,
+                    c.type,
+                    j.employee_id,
+                    e.first_name AS employee_name,
+                    j.product_id,
+                    p.product_name,
+                    p.model,
+                    p.model_no,
+                    p.product_image
+                FROM jobs j
+                JOIN customers c ON j.customer_id = c.customer_id
+                JOIN employees e ON j.employee_id = e.employee_id
+                JOIN products p ON j.product_id = p.product_id
+                WHERE j.job_id = ?
+            `, [jobID]);
+
+            // Get customer phone numbers
+            const [phoneNumbers] = await connection.query(
+                "SELECT phone_number FROM telephones_customer WHERE customer_id = ?",
+                [customer_id]
+            );
+
+            // Format phone numbers
+            const formattedPhoneNumbers = phoneNumbers.map(phone => phone.phone_number);
+
+            // Add phone numbers to the response
+            const responseData = {
+                ...jobDetails[0],
+                phone_numbers: formattedPhoneNumbers
+            };
+
+            res.status(201).json({
+                message: "Job registered successfully with existing customer and product!",
+                jobID,
+                data: responseData
+            });
+        } catch (error) {
+            await connection.rollback();
+
+            // Handle specific database errors
+            if (error.code === "ER_DUP_ENTRY") {
+                const duplicateField = error.sqlMessage.match(/key '(.+?)'/)?.[1];
+                return res.status(400).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: `Duplicate entry detected for field: ${duplicateField}. Please check your input.`,
+                            path: duplicateField,
+                            location: "body"
+                        }
+                    ]
+                });
+            } else if (error.code === "ER_NO_REFERENCED_ROW_2") {
+                if (error.sqlMessage.includes("FOREIGN KEY (`employee_id`)")) {
+                    return res.status(400).json({
+                        errors: [
+                            {
+                                type: "field",
+                                msg: "Invalid employee ID. Please provide a valid employee ID.",
+                                path: "employeeID",
+                                location: "body"
+                            }
+                        ]
+                    });
+                } else if (error.sqlMessage.includes("FOREIGN KEY (`customer_id`)")) {
+                    return res.status(400).json({
+                        errors: [
+                            {
+                                type: "field",
+                                msg: "Invalid customer ID. Please provide a valid customer ID.",
+                                path: "customer_id",
+                                location: "body"
+                            }
+                        ]
+                    });
+                } else if (error.sqlMessage.includes("FOREIGN KEY (`product_id`)")) {
+                    return res.status(400).json({
+                        errors: [
+                            {
+                                type: "field",
+                                msg: "Invalid product ID. Please provide a valid product ID.",
+                                path: "product_id",
+                                location: "body"
+                            }
+                        ]
+                    });
+                }
+            }
+
+            // Default error message
+            res.status(500).json({
+                errors: [
+                    {
+                        type: "unknown",
+                        msg: error.message,
+                        path: "unknown",
+                        location: "body"
+                    }
+                ]
+            });
+        } finally {
+            connection.release();
+        }
+    }
+);
+
+
+// Route to register new job with existing customer and product
+router.post(
+    "/registerJobWithExisting",
+    [
+        // Customer validation
+        body("customer_id")
+            .notEmpty().withMessage("Customer ID is required")
+            .isInt().withMessage("Customer ID must be an integer"),
+
+        // Product validation
+        body("product_id")
+            .notEmpty().withMessage("Product ID is required")
+            .isInt().withMessage("Product ID must be an integer"),
+
+        // Job validation
+        body("repairDescription")
+            .notEmpty().withMessage("Repair description is required")
+            .isLength({ max: 255 }).withMessage("Repair description cannot exceed 255 characters"),
+        body("receiveDate")
+            .notEmpty().withMessage("Receive date is required")
+            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)"),
+        body("employeeID")
+            .notEmpty().withMessage("Employee ID is required")
+            .isInt().withMessage("Employee ID must be an integer")
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        try {
+            const { customer_id, product_id, repairDescription, receiveDate, employeeID } = req.body;
+            
+            // Check if customer exists
+            const [existingCustomer] = await connection.query(
+                "SELECT * FROM customers WHERE customer_id = ?",
+                [customer_id]
+            );
+            
+            if (existingCustomer.length === 0) {
+                return res.status(404).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: "Customer not found. Please provide a valid customer ID.",
+                            path: "customer_id",
+                            location: "body"
+                        }
+                    ]
+                });
+            }
+            
+            // Check if product exists
+            const [existingProduct] = await connection.query(
+                "SELECT * FROM products WHERE product_id = ?",
+                [product_id]
+            );
+            
+            if (existingProduct.length === 0) {
+                return res.status(404).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: "Product not found. Please provide a valid product ID.",
+                            path: "product_id",
+                            location: "body"
+                        }
+                    ]
+                });
+            }
+            
+            // Check if employee exists
+            const [existingEmployee] = await connection.query(
+                "SELECT * FROM employees WHERE employee_id = ?",
+                [employeeID]
+            );
+            
+            if (existingEmployee.length === 0) {
+                return res.status(404).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: "Employee not found. Please provide a valid employee ID.",
+                            path: "employeeID",
+                            location: "body"
+                        }
+                    ]
+                });
+            }
+
+            // Check if there's an active job for this product
+            const [activeJobs] = await connection.query(
+                "SELECT * FROM jobs WHERE product_id = ? AND repair_status != 'completed' AND repair_status != 'cancelled'",
+                [product_id]
+            );
+            
+            if (activeJobs.length > 0) {
+                return res.status(400).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: "This product already has an active repair job. Complete or cancel the existing job before creating a new one.",
+                            path: "product_id",
+                            location: "body"
+                        }
+                    ]
+                });
+            }
+
+            // Register Job with the existing customer ID and product ID
+            const [jobResult] = await connection.query(
+                "INSERT INTO jobs (repair_description, repair_status, receive_date, customer_id, employee_id, product_id) VALUES (?, ?, ?, ?, ?, ?)",
+                [repairDescription, "pending", receiveDate, customer_id, employeeID, product_id]
+            );
+            const jobID = jobResult.insertId;
+
+            // Commit the transaction
+            await connection.commit();
+
+            // Fetch complete job with customer and product details
+            const [jobDetails] = await connection.query(`
+                SELECT 
+                    j.job_id, 
+                    j.repair_description, 
+                    j.repair_status,
+                    j.receive_date,
+                    j.customer_id, 
+                    c.firstName, 
+                    c.lastName,
+                    c.email,
+                    c.type,
+                    j.employee_id,
+                    e.first_name AS employee_name,
+                    j.product_id,
+                    p.product_name,
+                    p.model,
+                    p.model_no,
+                    p.product_image
+                FROM jobs j
+                JOIN customers c ON j.customer_id = c.customer_id
+                JOIN employees e ON j.employee_id = e.employee_id
+                JOIN products p ON j.product_id = p.product_id
+                WHERE j.job_id = ?
+            `, [jobID]);
+
+            // Get customer phone numbers
+            const [phoneNumbers] = await connection.query(
+                "SELECT phone_number FROM telephones_customer WHERE customer_id = ?",
+                [customer_id]
+            );
+
+            // Format phone numbers
+            const formattedPhoneNumbers = phoneNumbers.map(phone => phone.phone_number);
+
+            // Add phone numbers to the response
+            const responseData = {
+                ...jobDetails[0],
+                phone_numbers: formattedPhoneNumbers
+            };
+
+            res.status(201).json({
+                message: "Job registered successfully with existing customer and product!",
+                jobID,
+                data: responseData
+            });
+        } catch (error) {
+            await connection.rollback();
+
+            // Handle specific database errors
+            if (error.code === "ER_DUP_ENTRY") {
+                const duplicateField = error.sqlMessage.match(/key '(.+?)'/)?.[1];
+                return res.status(400).json({
+                    errors: [
+                        {
+                            type: "field",
+                            msg: `Duplicate entry detected for field: ${duplicateField}. Please check your input.`,
+                            path: duplicateField,
+                            location: "body"
+                        }
+                    ]
+                });
+            } else if (error.code === "ER_NO_REFERENCED_ROW_2") {
+                if (error.sqlMessage.includes("FOREIGN KEY (`employee_id`)")) {
+                    return res.status(400).json({
+                        errors: [
+                            {
+                                type: "field",
+                                msg: "Invalid employee ID. Please provide a valid employee ID.",
+                                path: "employeeID",
+                                location: "body"
+                            }
+                        ]
+                    });
+                } else if (error.sqlMessage.includes("FOREIGN KEY (`customer_id`)")) {
+                    return res.status(400).json({
+                        errors: [
+                            {
+                                type: "field",
+                                msg: "Invalid customer ID. Please provide a valid customer ID.",
+                                path: "customer_id",
+                                location: "body"
+                            }
+                        ]
+                    });
+                } else if (error.sqlMessage.includes("FOREIGN KEY (`product_id`)")) {
+                    return res.status(400).json({
+                        errors: [
+                            {
+                                type: "field",
+                                msg: "Invalid product ID. Please provide a valid product ID.",
+                                path: "product_id",
+                                location: "body"
+                            }
+                        ]
+                    });
+                }
+            }
+
             // Default error message
             res.status(500).json({
                 errors: [

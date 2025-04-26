@@ -1,5 +1,5 @@
 const multer = require("multer");
-const cloudinary = require("../src/config/cloudinary"); // Fix the path
+const cloudinary = require("../src/config/cloudinary"); 
 const path = require("path");
 const fs = require("fs");
 

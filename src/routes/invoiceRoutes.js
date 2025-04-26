@@ -161,13 +161,50 @@ router.post('/add', [
         });
     }
 });
-// Fetch all invoices
-
+// Fetch all invoices with complete details
 router.get('/all', async (req, res) => {
     try {
-        // Fetch all invoices
+        // Fetch all invoices with related information
         const invoiceQuery = `
-            SELECT * FROM invoice;
+            SELECT 
+                i.Invoice_Id,
+                i.job_id,
+                j.repair_description,
+                j.repair_status,
+                i.customer_id,
+                CONCAT(c.firstName, ' ', c.lastName) as customer_name,
+                c.email as customer_email,
+                i.employee_id,
+                CONCAT(e.first_name, ' ', e.last_name) as employee_name,
+                e.role as employee_role,
+                p.product_id,
+                p.product_name,
+                p.model,
+                p.model_no,
+                p.product_image,
+                i.TotalCost_for_Parts,
+                i.Labour_Cost,
+                i.Total_Amount,
+                i.warranty,
+                i.warranty_exp_date,
+                i.Date as invoice_date,
+                i.Created_By,
+                i.AdvanceInvoice_Id,
+                ai.Advance_Amount as advance_payment
+            FROM 
+                invoice i
+            JOIN 
+                jobs j ON i.job_id = j.job_id
+            JOIN 
+                customers c ON i.customer_id = c.customer_id
+            JOIN 
+                employees e ON i.employee_id = e.employee_id
+            JOIN 
+                products p ON j.product_id = p.product_id
+            LEFT JOIN 
+                AdvanceInvoice ai ON i.AdvanceInvoice_Id = ai.AdvanceInvoice_Id
+            ORDER BY 
+                i.Date DESC;
         `;
 
         const [invoiceRows] = await pool.query(invoiceQuery);
@@ -176,21 +213,93 @@ router.get('/all', async (req, res) => {
             return res.status(404).json({ error: 'No invoices found' });
         }
 
-        res.json(invoiceRows); // Return all invoices
+        // Process the results to calculate additional fields
+        const processedInvoices = invoiceRows.map(invoice => {
+            // Calculate balance due (if advance payment exists)
+            const advancePayment = invoice.advance_payment || 0;
+            const balanceDue = invoice.Total_Amount - advancePayment;
+            
+            // Format the dates for better readability
+            const formattedInvoiceDate = new Date(invoice.invoice_date).toISOString().split('T')[0];
+            const formattedWarrantyExpDate = invoice.warranty_exp_date ? 
+                new Date(invoice.warranty_exp_date).toISOString().split('T')[0] : null;
+            
+            return {
+                ...invoice,
+                advance_payment: advancePayment,
+                balance_due: balanceDue,
+                invoice_date: formattedInvoiceDate,
+                warranty_exp_date: formattedWarrantyExpDate,
+                warranty_status: determineWarrantyStatus(invoice.warranty, invoice.warranty_exp_date)
+            };
+        });
+
+        res.json({
+            count: processedInvoices.length,
+            invoices: processedInvoices
+        });
     } catch (error) {
         console.error('Error fetching invoices:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-// Fetch an invoice by ID
-router.get('/:Invoice_Id', async (req, res) => { // Removed extra space here
+// Fetch an invoice by ID with complete details
+router.get('/:Invoice_Id', async (req, res) => {
     const invoiceId = req.params.Invoice_Id;
 
     try {
-        // Fetch invoice details including TotalCost_for_Parts
+        // Validate invoiceId is a number
+        if (isNaN(invoiceId)) {
+            return res.status(400).json({ 
+                error: 'Invalid invoice ID format. Must be a number.' 
+            });
+        }
+        
+        // Fetch invoice with related information
         const invoiceQuery = `
-            SELECT * FROM invoice WHERE Invoice_Id = ?;
+            SELECT 
+                i.Invoice_Id,
+                i.job_id,
+                j.repair_description,
+                j.repair_status,
+                j.receive_date,
+                j.handover_date,
+                i.customer_id,
+                CONCAT(c.firstName, ' ', c.lastName) as customer_name,
+                c.email as customer_email,
+                c.type as customer_type,
+                i.employee_id,
+                CONCAT(e.first_name, ' ', e.last_name) as employee_name,
+                e.role as employee_role,
+                p.product_id,
+                p.product_name,
+                p.model,
+                p.model_no,
+                p.product_image,
+                i.TotalCost_for_Parts,
+                i.Labour_Cost,
+                i.Total_Amount,
+                i.warranty,
+                i.warranty_exp_date,
+                i.Date as invoice_date,
+                i.Created_By,
+                i.AdvanceInvoice_Id,
+                ai.Advance_Amount as advance_payment
+            FROM 
+                invoice i
+            JOIN 
+                jobs j ON i.job_id = j.job_id
+            JOIN 
+                customers c ON i.customer_id = c.customer_id
+            JOIN 
+                employees e ON i.employee_id = e.employee_id
+            JOIN 
+                products p ON j.product_id = p.product_id
+            LEFT JOIN 
+                AdvanceInvoice ai ON i.AdvanceInvoice_Id = ai.AdvanceInvoice_Id
+            WHERE 
+                i.Invoice_Id = ?;
         `;
 
         const [invoiceRows] = await pool.query(invoiceQuery, [invoiceId]);
@@ -199,7 +308,53 @@ router.get('/:Invoice_Id', async (req, res) => { // Removed extra space here
             return res.status(404).json({ error: 'Invoice not found' });
         }
 
-        res.json(invoiceRows[0]);
+        // Get customer phone numbers
+        const [phoneNumbers] = await pool.query(
+            "SELECT phone_number FROM telephones_customer WHERE customer_id = ?",
+            [invoiceRows[0].customer_id]
+        );
+        
+        // Get inventory items used for this job
+        const [usedItems] = await pool.query(`
+            SELECT 
+                jui.inventoryItem_id,
+                i.item_name,
+                jui.batch_no,
+                jui.quantity,
+                jui.total,
+                ib.unitprice
+            FROM 
+                jobusedinventory jui
+            LEFT JOIN 
+                inventorybatch ib ON jui.inventoryItem_id = ib.inventoryItem_id AND jui.batch_no = ib.batch_no
+            LEFT JOIN 
+                inventory i ON jui.inventoryItem_id = i.inventoryItem_id
+            WHERE 
+                jui.job_id = ?
+        `, [invoiceRows[0].job_id]);
+        
+        // Calculate balance due
+        const advancePayment = invoiceRows[0].advance_payment || 0;
+        const balanceDue = invoiceRows[0].Total_Amount - advancePayment;
+        
+        // Format dates
+        const formattedInvoiceDate = new Date(invoiceRows[0].invoice_date).toISOString().split('T')[0];
+        const formattedWarrantyExpDate = invoiceRows[0].warranty_exp_date ? 
+            new Date(invoiceRows[0].warranty_exp_date).toISOString().split('T')[0] : null;
+        
+        // Prepare the response
+        const invoiceDetails = {
+            ...invoiceRows[0],
+            phone_numbers: phoneNumbers.map(p => p.phone_number),
+            used_inventory: usedItems,
+            advance_payment: advancePayment,
+            balance_due: balanceDue,
+            invoice_date: formattedInvoiceDate,
+            warranty_exp_date: formattedWarrantyExpDate,
+            warranty_status: determineWarrantyStatus(invoiceRows[0].warranty, invoiceRows[0].warranty_exp_date)
+        };
+
+        res.json(invoiceDetails);
     } catch (error) {
         console.error('Error fetching invoice:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -283,5 +438,24 @@ router.get('/check/:jobId', async (req, res) => {
         });
     }
 });
+
+// Helper function to determine warranty status
+function determineWarrantyStatus(hasWarranty, expiryDate) {
+    if (!hasWarranty) return 'No Warranty';
+    
+    if (!expiryDate) return 'Unknown';
+    
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    
+    if (expiry < today) {
+        return 'Expired';
+    } else {
+        // Calculate days remaining
+        const diffTime = Math.abs(expiry - today);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return `Active (${diffDays} days remaining)`;
+    }
+}
 
 module.exports = router;

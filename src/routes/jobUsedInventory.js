@@ -10,7 +10,6 @@ router.post('/add/:jobId/:inventoryId/:batchNo', [
 ], async (req, res) => {
     const { jobId, inventoryId, batchNo } = req.params;
     const { Quantity_Used } = req.body;
-    console.log(jobId,batchNo,inventoryId,Quantity_Used);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -18,14 +17,23 @@ router.post('/add/:jobId/:inventoryId/:batchNo', [
     }
 
     try {
+        // Check if the item already exists in the jobusedinventory table
+        const [existingEntry] = await db.query(
+            "SELECT * FROM jobusedinventory WHERE job_id = ? AND inventoryItem_id = ? AND batch_no = ?",
+            [jobId, inventoryId, batchNo]
+        );
+
+        if (existingEntry.length > 0) {
+            return res.status(400).json({
+                message: "This item is already added. If you want to change the quantity, please update it from the list."
+            });
+        }
 
         // Retrieve the unit price and current quantity from the InventoryBatch table
         const [batch] = await db.query(
             "SELECT unitprice, quantity FROM inventorybatch WHERE inventoryItem_id = ? AND batch_no = ?",
             [inventoryId, batchNo]
-
         );
-
 
         if (batch.length === 0) {
             return res.status(404).json({ message: "Inventory batch not found" });
@@ -42,7 +50,7 @@ router.post('/add/:jobId/:inventoryId/:batchNo', [
 
         // Insert the data into the JobUsedInventory table
         const [result] = await db.query(
-            "INSERT INTO jobusedinventory (job_ID, inventoryItem_id , batch_no, quantity, total) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO jobusedinventory (job_ID, inventoryItem_id, batch_no, quantity, total) VALUES (?, ?, ?, ?, ?)",
             [jobId, inventoryId, batchNo, Quantity_Used, Total_Amount]
         );
 

@@ -14,6 +14,39 @@ router.get('/all', async (req, res) => {
     }
 });
 
+// Get inventory purchase details ordered by most recent purchase date
+router.get('/inventoryPurchases', async (req, res) => {
+    try {
+        const [purchases] = await db.query(`
+            SELECT 
+                ip.purchase_id,
+                i.item_name,
+                ip.batch_no,
+                s.supplier_name,
+                DATE_FORMAT(ip.purchaseDate, '%Y-%m-%d') as purchaseDate, -- Format date as YYYY-MM-DD
+                ip.quantity,
+                ip.unitprice,
+                ip.total
+            FROM 
+                inventorypurchase ip
+            JOIN 
+                suppliers s ON ip.supplier_id = s.supplier_id
+            JOIN 
+                inventory i ON ip.inventoryItem_id = i.inventoryItem_id
+            ORDER BY 
+                ip.purchaseDate DESC; -- Order by most recent date
+        `);
+
+        res.status(200).json({
+            message: "Inventory purchases retrieved successfully",
+            purchases: purchases
+        });
+    } catch (err) {
+        console.error("Error fetching inventory purchases:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Get a specific inventory batch by BatchNo
 router.get('/getInventoryBatch/:batch_no', async (req, res) => {
     const { batch_no } = req.params;
@@ -30,9 +63,21 @@ router.get('/getInventoryItemBatch/:inventoryItem_id', async (req, res) => {
     const { inventoryItem_id } = req.params;
     try {
         const [batches] = await db.query(
-            `select i.item_name , ib.batch_no , ib.unitprice, ib.quantity,ib.Purchase_Date,s.supplier_name
-from inventory i,inventorybatch ib, suppliers s
-where i.inventoryItem_id = ib.inventoryItem_id AND ib.supplier_id = s.supplier_id AND ib.inventoryItem_id = ?;`,
+            `SELECT 
+                i.item_name, 
+                ib.batch_no, 
+                ib.unitprice, 
+                ib.quantity, 
+                ib.Purchase_Date, 
+                s.supplier_name
+            FROM 
+                inventory i
+            JOIN 
+                inventorybatch ib ON i.inventoryItem_id = ib.inventoryItem_id
+            JOIN 
+                suppliers s ON ib.supplier_id = s.supplier_id
+            WHERE 
+                ib.inventoryItem_id = ? AND ib.quantity > 0;`, // Exclude batches with quantity = 0
             [inventoryItem_id]
         );
         res.status(200).json(batches);

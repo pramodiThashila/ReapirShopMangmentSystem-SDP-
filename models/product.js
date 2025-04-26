@@ -23,6 +23,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: null,
     },
+    customer_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     tableName: 'products', // Explicitly set the table name
@@ -31,6 +35,7 @@ module.exports = (sequelize, DataTypes) => {
 
   Product.associate = (models) => {
     Product.hasMany(models.Job, { foreignKey: 'product_id', onDelete: 'SET NULL' });
+    Product.belongsTo(models.Customer, { foreignKey: 'customer_id', onDelete: 'SET NULL' });
   };
 
   return Product;

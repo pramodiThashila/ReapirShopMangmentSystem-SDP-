@@ -162,11 +162,11 @@ router.patch("/:id", async (req, res) => {
 });
 
 // Delete Customer
-router.delete("/:id", async (req, res) => {
+router.delete("/delete/:id", async (req, res) => {
     const { id } = req.params;
     try {
         await db.query("DELETE FROM customers WHERE customer_id = ?", [id]);
-        await db.query("DELETE FROM telephones WHERE customer_id = ?", [id]);
+       // await db.query("DELETE FROM telephones_customer WHERE customer_id = ?", [id]);
         res.status(200).json({ message: "Customer deleted successfully!" });
     } catch (error) {
         res.status(500).json({ error: error.message });
