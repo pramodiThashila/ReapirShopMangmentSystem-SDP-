@@ -5,7 +5,14 @@ import { useUser } from '../context/UserContext'; // Import UserContext to get e
 
 const JobDetails = () => {
     const { user } = useUser(); // Get the logged-in user details  
-  const [jobs, setJobs] = useState([]);
+  const [jobs, setJobs] = useState<{ 
+    job_id: string; 
+    repair_description: string; 
+    product_name: string; 
+    product_image: string; 
+    employee_name?: string; 
+    repair_status: string; 
+  }[]>([]);
   const [selectedJob, setSelectedJob] = useState<{
     job_id: string;
     repair_description: string;
@@ -147,17 +154,25 @@ const JobDetails = () => {
     }
   };
 
+  const handleCancelInventoryUpdate = () => {
+    setQuantityUsed('');
+    setSelectedInventory('');
+    setSelectedBatch('');
+    setErrorMessages([]);
+    setIsInventoryModalOpen(false);
+  };
+
   const handleUpdateClick = (jobId: string) => {
     setSelectedJobId(jobId);
     setIsUpdateModalOpen(true);
   };
 
-  // Add this function to handle search input changes
+  //  handle search input changes
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  // Add this filtering logic before the return statement
+  
   const filteredJobs = Array.isArray(jobs)
       ? jobs.filter((job: {
           job_id: string;
@@ -178,7 +193,7 @@ const JobDetails = () => {
     <div className="max-w-6xl mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
     
 
-      {/* Job Table with Improved UI */}
+      {/* Job Table  */}
       <div className="container mx-auto mt-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">JOB Details</h1>
@@ -194,7 +209,7 @@ const JobDetails = () => {
           </button>
         </div>
 
-        {/* Search Bar - Now with functionality */}
+        {/* Search Bar  */}
         <div className="flex justify-end mb-4">
           <input
             type="text"
@@ -226,7 +241,7 @@ const JobDetails = () => {
                 product_image: string;
                 employee_name?: string;
                 repair_status: string;
-              }) => ( // Change jobs to filteredJobs
+              }) => ( 
                 <tr
                   key={job.job_id}
                   onClick={() => handleRowClick(job)}
@@ -287,7 +302,7 @@ const JobDetails = () => {
           </table>
         </div>
 
-        {/* Empty state - Updated to handle search results */}
+        {/* Empty state  */}
         {filteredJobs.length === 0 && (
           <div className="text-center py-12 bg-white rounded-lg shadow border border-gray-200">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -391,7 +406,7 @@ const JobDetails = () => {
         </button>
         <button
           type="button"
-          onClick={() => setIsInventoryModalOpen(false)}
+          onClick={handleCancelInventoryUpdate}
           className="ml-2 px-4 py-2 bg-red-500 text-white rounded"
         >
           Cancel

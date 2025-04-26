@@ -26,6 +26,7 @@ const AdvancePaymentInvoice = () => {
   });
   
   const [customerInfo, setCustomerInfo] = useState({
+    customer_id: 0,
     customerName: '',
     phoneNumber: '',
     email: '',
@@ -35,17 +36,18 @@ const AdvancePaymentInvoice = () => {
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertType, setAlertType] = useState<'success' | 'error' | 'warning'>('success');
 
-  // Add a ref for the alert element
+  // Add a ref for the alert element to scroll to it
+  // This ref will be used to scroll to the alert when it appears
   const alertRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useEffect(() => { // Fetch job details when the component mounts or jobId changes
     if (jobId) {
       fetchJobDetails();
     }
   }, [jobId]);
 
   const fetchJobDetails = async () => {
-    setIsLoading(true);
+    setIsLoading(true); 
     try {
       const jobResponse = await axios.get(`http://localhost:5000/api/jobs/eachjob/${jobId}`);
       const jobData = jobResponse.data;
@@ -61,20 +63,22 @@ const AdvancePaymentInvoice = () => {
         const customerData = customerResponse.data;
         
         setCustomerInfo({
+          customer_id:jobData.customer_id,
           customerName: `${customerData.firstName || ''} ${customerData.lastName || ''}`.trim(),
           phoneNumber: customerData.phone_number?.length > 0 ? customerData.phone_number[0] : '',
           email: customerData.email || '',
         });
       } else {
         setCustomerInfo({
-          customerName: jobData.customer_name || '',
+          customer_id: jobData.customer_id || 0,
+          customerName: jobData.customer_name || '', //if customer id not available ,get the name from jib details
           phoneNumber: '',
           email: '',
         });
       }
       
       setInvoice(prev => ({
-        ...prev,
+        ...prev,//ensure other fields are not lost
         jobId: jobId || ''
       }));
     } catch (error) {
@@ -87,9 +91,9 @@ const AdvancePaymentInvoice = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setInvoice(prev => ({
-      ...prev,
-      [name]: value
+    setInvoice(prev => ({ //this is triggered when a change happen 1st load the previous state 
+      ...prev,             //spred the privous state
+      [name]: value //update changed values (names are values are form attribiutes)
     }));
   };
 
@@ -128,10 +132,11 @@ const AdvancePaymentInvoice = () => {
     setIsLoading(true);
     
     try {
-      const jobResponse = await axios.get(`http://localhost:5000/api/jobs/eachjob/${jobId}`);
-      const jobData = jobResponse.data;  
-      const customerResponse = await axios.get(`http://localhost:5000/api/customers/${jobData.customer_id}`);
-      const customerId = customerResponse.data.customer_id;
+      //const jobResponse = await axios.get(`http://localhost:5000/api/jobs/eachjob/${jobId}`);
+      //const jobData = jobResponse.data;  
+      // const customerResponse = await axios.get(`http://localhost:5000/api/customers/${jobData.customer_id}`);
+      // const customerId = customerResponse.data.customer_id;
+      const customerId = customerInfo.customer_id;
       
       const employeeId = user?.employee_id;
       
@@ -149,11 +154,12 @@ const AdvancePaymentInvoice = () => {
         date: invoice.date
       };
 
-      console.log(payload);
+      //console.log(payload);
       
       const response = await axios.post('http://localhost:5000/api/advance-invoice/create', payload);
       
       if (response.status === 201 || response.status === 200) {
+        const createdInvoiceId = response.data.createdInvoiceId;
         if (response.data && response.data.message) {
           showAlert(response.data.message, 'success');
         } else {
@@ -162,7 +168,7 @@ const AdvancePaymentInvoice = () => {
         
         // Delay navigation to allow user to see the alert
         setTimeout(() => {
-          navigate('/jobs/view');
+          navigate(`/advance-invoice/${createdInvoiceId}`);
         }, 2000);
       } else {
         showAlert('Operation completed but server response was unexpected', 'warning');
@@ -207,7 +213,9 @@ const AdvancePaymentInvoice = () => {
       if (alertRef.current) {
         alertRef.current.scrollIntoView({ 
           behavior: 'smooth', 
-          block: 'start' 
+          block: 'start' // Aligns the top of the element with the top of the scrollable area.
+
+
         });
       }
     }, 100);
@@ -230,7 +238,7 @@ const AdvancePaymentInvoice = () => {
 
   return (
     <div className="max-w-4xl mx-auto my-10 px-4">
-      {/* Alert Box - Add ref */}
+      {/* Alert Box  */}
       {alertMessage && (
         <div 
           ref={alertRef}
@@ -347,14 +355,14 @@ const AdvancePaymentInvoice = () => {
             </div>
           </div>
           
-          {/* Advance Amount - Simplified Payment Section */}
+          {/* Advance Amount   */}
           <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-100">
             <h2 className="text-lg font-semibold text-blue-800 mb-3">Advance Payment</h2>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Advance Amount</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">$</span>
+                  <span className="text-gray-500 sm:text-sm">Rs.</span>
                 </div>
                 <input
                   type="number"

@@ -17,8 +17,8 @@ export default function Dashboard() {
       color: 'bg-green-600',
     },
     {
-      title: 'Total Products',
-      value: 189,
+      title: 'Total Inventory',
+      value: 89,
       icon: Package,
       color: 'bg-purple-600',
     },
@@ -44,13 +44,13 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Recent Repair Jobs
           </h2>
-          {/* Add recent repairs list here */}
+          {/*recent repairs list  */}
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Low Stock Products
           </h2>
-          {/* Add low stock products list here */}
+          {/* low stock products list  */}
         </div>
       </div>
     </div>

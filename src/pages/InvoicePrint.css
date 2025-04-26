@@ -1,0 +1,38 @@
+@media print {
+  /* Hide everything except the invoice */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Only show the invoice and its children */
+  .invoice-container,
+  .invoice-container * {
+    visibility: visible;
+  }
+  
+  /* Position the invoice at the top left */
+  .invoice-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  
+  /* Hide navigation elements */
+  .print-hidden {
+    display: none !important;
+  }
+  
+  /* Remove shadows for better printing */
+  .invoice-document {
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  /* Ensure white background */
+  body {
+    background-color: white;
+  }
+}

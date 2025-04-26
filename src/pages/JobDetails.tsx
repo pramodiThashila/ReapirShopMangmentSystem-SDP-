@@ -30,7 +30,7 @@ const JobDetails = () => {
   const [quantityUsed, setQuantityUsed] = useState('');
   const [errorMessages, setErrorMessages] = useState<string[]>([]); // State for error messages
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState(''); // Add this state variable
+  const [searchQuery, setSearchQuery] = useState(''); 
   const [alertMessage, setAlertMessage] = useState<string>("");
   const [alertType, setAlertType] = useState<"success" | "error" | "warning" | "info">("info");
   const [showAlert, setShowAlert] = useState<boolean>(false);
@@ -103,6 +103,14 @@ const JobDetails = () => {
     fetchBatches(inventoryId);
   };
 
+  const handleCancelInventoryUpdate = () => {
+    setSelectedInventory('');
+    setSelectedBatch('');
+    setQuantityUsed('');
+    setErrorMessages([]);
+    setIsInventoryModalOpen(false);
+  };
+
   // Handle form submission for updating used inventory
   const handleInventorySubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -143,12 +151,12 @@ const JobDetails = () => {
     setIsUpdateModalOpen(true);
   };
 
-  // Add this function to handle search input changes
+  //  handle search input changes
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  // Add this filtering logic before the return statement
+  //  filtering logic 
   const filteredJobs = searchQuery
     ? jobs.filter(job => 
         job.product_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -158,7 +166,7 @@ const JobDetails = () => {
       )
     : jobs;
 
-  // Add this function to handle advance invoice button click
+  //  handle advance invoice button click
   const handleAdvanceInvoiceClick = () => {
     if (!selectedJob) {
       // Show alert if no job is selected
@@ -190,7 +198,7 @@ const JobDetails = () => {
         </div>
       )}
 
-      {/* Job Table with Improved UI */}
+      {/* Job Table  */}
       <div className="container mx-auto mt-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">JOB Details</h1>
@@ -224,7 +232,7 @@ const JobDetails = () => {
           </div>
         </div>
 
-        {/* Search Bar - Now with functionality */}
+        {/* Search Bar */}
         <div className="flex justify-end mb-4">
           <input
             type="text"
@@ -249,7 +257,7 @@ const JobDetails = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredJobs.map((job) => ( // Change jobs to filteredJobs
+              {filteredJobs.map((job) => ( 
                 <tr
                   key={job.job_id}
                   onClick={() => handleRowClick(job)}
@@ -310,7 +318,7 @@ const JobDetails = () => {
           </table>
         </div>
 
-        {/* Empty state - Updated to handle search results */}
+        {/* Empty state  */}
         {filteredJobs.length === 0 && (
           <div className="text-center py-12 bg-white rounded-lg shadow border border-gray-200">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -414,7 +422,7 @@ const JobDetails = () => {
         </button>
         <button
           type="button"
-          onClick={() => setIsInventoryModalOpen(false)}
+          onClick={handleCancelInventoryUpdate}
           className="ml-2 px-4 py-2 bg-red-500 text-white rounded"
         >
           Cancel

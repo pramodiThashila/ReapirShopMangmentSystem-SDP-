@@ -114,7 +114,7 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
               
               console.log("Customer data received:", customerData);
               
-              // Handle different field naming conventions and ensure proper data types
+              
               setCustomer({
                 firstName: customerData.firstName || customerData.first_name || "",
                 lastName: customerData.lastName || customerData.last_name || "",
@@ -207,13 +207,13 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
     setErrors({});
     
     try {
-      // Log what we're sending to help debug
+      // debug
       console.log("Submitting job data:", job);
       
       // Create a single FormData object containing both job and product data
       const formData = new FormData();
       
-      // Job details - CHANGED TO MATCH BACKEND FIELD NAMES
+      // Job detai
       formData.append("repair_description", job.repairDescription);
       
       // Convert status to match backend's expected format
@@ -229,7 +229,7 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
       formData.append("receive_date", job.receiveDate);
       formData.append("employee_id", job.employeeID);
       
-      // Product details - these already match the backend field names
+      // Product details 
       formData.append("product_name", product.productName);
       formData.append("model", product.model);
       formData.append("model_no", product.modelNo);
@@ -239,7 +239,7 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
         formData.append("product_image", productImage);
       }
 
-      // Debug - print what we're sending
+      // Debug - 
       console.log("FormData contents:");
       for (let pair of formData.entries()) {
         console.log(pair[0] + ": " + pair[1]);
@@ -275,7 +275,7 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
       
       refreshData();
     } catch (error: any) {
-      // Error handling remains the same
+      
       console.error("Update failed:", error);
       
       if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {

@@ -26,29 +26,32 @@ const menuItems = [
       { path: '/employees/register', label: 'Add Employee' },
     ],
   },
-  { path: '/repairs', icon: Wrench, label: 'Jobs', subItems: [
+  { path: '/jobs/view', icon: Wrench, label: 'Jobs', subItems: [
       { path: '/jobAndCustomer/register', label: 'Register Job' },
       { path: '/jobs/view', label: 'View Jobs' },
       {path: '/jobs/myJobs', label: 'My Jobs'},
     ],
   },
-  { path: '/customers', icon: Users, label: 'Customer Details', subItems: [
+  { path: '/customer/view', icon: Users, label: 'Customer Details', subItems: [
       { path: '/customer/view', label: 'View Customers' },
       { path: '/jobAndCustomer/register', label: 'Add Customer And Job' },
     ],
   },
-  { path: '/inventory', icon: Package, label: 'Inventory', subItems: [
+  { path: '/inventory/view', icon: Package, label: 'Inventory', subItems: [
       { path: '/inventory/view', label: 'View Inventory' },
+      {path: '/inventory-purchases', label: 'View Inventory Purchases'},
       { path: '/inventoryItem/add', label: 'Add New Inventory Item' },
       { path: '/inventoryItem/batch/add', label: 'Add New Batch' },
     ],
   },
-  { path: '/invoice', icon: FileText, label: 'Invoice', subItems: [
-      { path: '/supplier/view', label: 'View Invoice' },
+  { path: '/invoices', icon: FileText, label: 'Invoice', subItems: [
+     { path: '/invoices', label: 'View Invoice' },
       { path: '/finalInvoice', label: 'Create Invoice' },
+      {path: '/advance-invoices', label: 'view advance invoice'},
+      
     ],
   },
-  { path: '/suppliers', icon: Truck, label: 'Supplier Details', subItems: [
+  { path: '/supplier/view', icon: Truck, label: 'Supplier Details', subItems: [
       { path: '/supplier/view', label: 'View Suppliers' },
       { path: '/supplier/register', label: 'Add Supplier' },
     ],
@@ -64,7 +67,7 @@ export default function Sidebar({ isCollapsed }: SidebarProps) {
   // Handle logout click
   const handleLogout = () => {
     logout(); // Call logout function from context
-    navigate('/login'); // Redirect to login page
+    navigate('/'); // Redirect to login page
   };
 
   return (

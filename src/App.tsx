@@ -12,12 +12,18 @@ import InventoryBatchAdd from './pages/InventoryBatch';
 import InventoryBatchDetails from './pages/InventoryBatch Details';
 import SupplierRegister from './pages/SupplierRegister';
 import SupplierTable from './pages/SupplierTable';
-import InvoiceForm from './pages/FinalInvoice';
 import RegisterJobCustomerProduct from './pages/RegisterJobAndCustomer';
 import ViewJobs from './pages/JobDetails';
 import { UserProvider } from './context/UserContext'; 
 import MyJobs from './pages/MyJobs';
 import AdvancePaymentInvoice from './pages/AdvancePaymentInvoice';
+import CustomerView from './pages/CustomerView';
+ import InvoiceDetails from './pages/InvoiceDetails';
+import InvoiceList from './pages/InvoiceList';
+import FinalInvoice from './pages/FinalInvoice';
+ import AdvanceInvoiceDetails from './pages/AdvanceInvoiceDetails';
+import AdvanceInvoiceList from './pages/AdvanceInvoiceList';
+import InventoryPurchases from './pages/InventoryPurchasesView';
 
 function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -49,11 +55,18 @@ function App() {
                       <Route path='/inventoryBatchDetails/:inventoryItem_id' element={<InventoryBatchDetails />} />
                       <Route path="/supplier/register" element={<SupplierRegister />} />
                       <Route path='/supplier/view' element={<SupplierTable />} />
-                      <Route path="/finalInvoice" element={<InvoiceForm />} />
+                      <Route path="/finalInvoice" element={<FinalInvoice/>} />
                       <Route path="/jobAndCustomer/register" element={<RegisterJobCustomerProduct />} />
                       <Route path="/jobs/view" element={<ViewJobs />} />
                       <Route path="/jobs/myJobs" element={<MyJobs />} />
                       <Route path="/advance-payment-invoice" element={<AdvancePaymentInvoice />} />
+                      <Route path="customer/view" element={<CustomerView/>} />
+                       <Route path="/invoice/:id" element={<InvoiceDetails />} /> 
+                      <Route path="/invoices" element={<InvoiceList />} />
+                      <Route path="/advance-invoices" element={<AdvanceInvoiceList />} />
+                       <Route path="/advance-invoice/:id" element={<AdvanceInvoiceDetails />} /> 
+                       <Route path="/inventory-purchases" element={<InventoryPurchases />} />
+
                     </Routes>
                   </main>
                 </div>

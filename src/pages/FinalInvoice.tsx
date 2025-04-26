@@ -106,7 +106,7 @@ const FinalInvoice = () => {
       
       // Continue with fetching job details if invoice can be created
       const url = `http://localhost:5000/api/jobs/eachjob/${invoice.jobId}`;
-      console.log("API URL:", url);
+      //console.log("API URL:", url);
       
       // Fetch job and product details
       const jobResponse = await axios.get(url);
@@ -118,8 +118,8 @@ const FinalInvoice = () => {
         modelNumber: jobData.model_no || '',
         repairDescription: jobData.repair_description || '',
         warrantyEligibility: jobData.warranty_status || 'No',
-        assignedEmployee: jobData.employee_name || 'Not assigned', // Add this line
-        assignedEmployeeId: jobData.employee_id || 0, // Add this line
+        assignedEmployee: jobData.employee_name || 'Not assigned',
+        assignedEmployeeId: jobData.employee_id || 0, 
       });
       
       // Fetch customer details
@@ -264,7 +264,7 @@ const FinalInvoice = () => {
       const payload = {
         job_id: Number(invoice.jobId),
         customer_id: Number(customerInfo.customerId),
-        employee_id: jobDetails.assignedEmployeeId , // Updated line
+        employee_id: jobDetails.assignedEmployeeId , 
         invoice_date: invoice.date,
         parts_cost: invoice.totalPartsCost,
         labour_cost: invoice.labourCost,
@@ -280,10 +280,11 @@ const FinalInvoice = () => {
       const response = await axios.post('http://localhost:5000/api/invoice/add', payload);
       
       if (response.status === 201 || response.status === 200) {
+        const createdInvoiceId = response.data.Invoice_Id; 
         showAlert(response.data?.message || 'Invoice created successfully', 'success');
         
         setTimeout(() => {
-          navigate('/jobs/view');
+          navigate(`/final-invoice/${createdInvoiceId}`);
         }, 2000);
       }
     } catch (error: any) {
@@ -685,7 +686,7 @@ const FinalInvoice = () => {
                             Rs. {typeof part.cost === 'number' ? part.cost.toFixed(2) : Number(part.cost).toFixed(2)}
                           </td>
                           <td className="py-3 px-4 text-sm text-gray-800">
-                            Rs. {typeof part.total === 'number' ? part.total.toFixed(2) : Number(part.total || part.quantity * part.cost).toFixed(2)}
+                            Rs. {(part.quantity * part.cost).toFixed(2)}
                           </td>
                         </tr>
                       ))}
@@ -751,7 +752,7 @@ const FinalInvoice = () => {
                 // Not eligible - show disabled button with tooltip
                 <div className="tooltip">
                   <button
-                    type="button" /* Change this to type="button" to prevent form submission attempts */
+                    type="button" 
                     disabled={true}
                     className="px-6 py-2.5 bg-indigo-300 text-white font-medium rounded-lg cursor-not-allowed flex items-center"
                   >
@@ -766,8 +767,8 @@ const FinalInvoice = () => {
           </form>
         </div>
       </div>
-      {/* Add this CSS to your component (you can also add it to your global CSS file) */}
-      <style jsx>{`
+    
+      <style>{`
         .tooltip {
           position: relative;
           display: inline-block;
@@ -788,6 +789,7 @@ const FinalInvoice = () => {
           margin-left: -125px;
           opacity: 0;
           transition: opacity 0.3s;
+          font-size: 11px;
         }
         
         .tooltip:hover .tooltiptext {

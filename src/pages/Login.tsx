@@ -50,9 +50,9 @@ export default function Login() {
       <div className="max-w-md w-full mx-4">
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl p-8 border border-white/20">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600 mb-4">
+            {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600 mb-4">
               <Zap size={32} className="text-white" />
-            </div>
+            </div> */}
             <h2 className="text-3xl font-bold text-white mb-2">Bandu Electricals</h2>
             <p className="text-gray-300">Sign in to your account</p>
           </div>
@@ -88,7 +88,7 @@ export default function Login() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
                   id="remember-me"
@@ -102,7 +102,7 @@ export default function Login() {
               <button type="button" className="text-sm text-blue-400 hover:text-blue-300">
                 Forgot password?
               </button>
-            </div>
+            </div> */}
 
             <button
               type="submit"
