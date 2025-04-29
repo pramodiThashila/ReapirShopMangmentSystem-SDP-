@@ -24,6 +24,11 @@ import FinalInvoice from './pages/FinalInvoice';
  import AdvanceInvoiceDetails from './pages/AdvanceInvoiceDetails';
 import AdvanceInvoiceList from './pages/AdvanceInvoiceList';
 import InventoryPurchases from './pages/InventoryPurchasesView';
+import UsedInventoryPage from './pages/UsedInventoryPage';
+import WarrantyEligibleJobs from './pages/WarrantyEligibleJobs';
+import RegisterWarrantyJob from './pages/RegisterWarrantyJob';
+//import UsedInventoryList from './components/UsedInventoryList';
+
 
 function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -66,6 +71,9 @@ function App() {
                       <Route path="/advance-invoices" element={<AdvanceInvoiceList />} />
                        <Route path="/advance-invoice/:id" element={<AdvanceInvoiceDetails />} /> 
                        <Route path="/inventory-purchases" element={<InventoryPurchases />} />
+                       <Route path="/jobs/:jobId/used-inventory" element={<UsedInventoryPage />} />
+                       <Route path="/warranty-eligible-jobs" element={<WarrantyEligibleJobs />} />
+                       <Route path="/jobs/register-warranty/:id" element={<RegisterWarrantyJob />} />
 
                     </Routes>
                   </main>

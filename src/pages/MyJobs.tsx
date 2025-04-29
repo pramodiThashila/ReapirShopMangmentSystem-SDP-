@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import UpdateJobAndProduct from "./UpdateJobAndProduct";
 import { useUser } from '../context/UserContext'; // Import UserContext to get employee_id
+import { useNavigate } from 'react-router-dom';
 
 const JobDetails = () => {
-    const { user } = useUser(); // Get the logged-in user details  
-  const [jobs, setJobs] = useState<{ 
-    job_id: string; 
-    repair_description: string; 
-    product_name: string; 
-    product_image: string; 
-    employee_name?: string; 
-    repair_status: string; 
+  const navigate = useNavigate(); // Add this line to define navigate
+  const { user } = useUser(); // Get the logged-in user details  
+  const [jobs, setJobs] = useState<{
+    job_id: string;
+    repair_description: string;
+    product_name: string;
+    product_image: string;
+    employee_name?: string;
+    repair_status: string;
   }[]>([]);
   const [selectedJob, setSelectedJob] = useState<{
     job_id: string;
@@ -60,7 +62,7 @@ const JobDetails = () => {
 
   useEffect(() => {
     fetchJobs();
-  }, [user]); 
+  }, [user]);
 
   useEffect(() => {
     fetchJobs();
@@ -91,13 +93,13 @@ const JobDetails = () => {
   };
 
   // Handle row selection
-  const handleRowClick = (job: { 
-    job_id: string; 
-    repair_description: string; 
+  const handleRowClick = (job: {
+    job_id: string;
+    repair_description: string;
     product_name: string;
-    product_image: string; 
-    employee_name?: string; 
-    repair_status: string; 
+    product_image: string;
+    employee_name?: string;
+    repair_status: string;
   }) => {
     setSelectedJob(job);
   };
@@ -172,41 +174,75 @@ const JobDetails = () => {
     setSearchQuery(e.target.value);
   };
 
-  
+  //job used inventory
+  const handleNavigateToUsedInventory = () => {
+    if (!selectedJob) {
+      alert('Please select a job first.');
+      return;
+    }
+    navigate(`/jobs/${selectedJob.job_id}/used-inventory`);
+  };
+
+
   const filteredJobs = Array.isArray(jobs)
-      ? jobs.filter((job: {
-          job_id: string;
-          repair_description: string;
-          product_name: string;
-          product_image: string;
-          employee_name?: string;
-          repair_status: string;
-        }) => 
-          job.product_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-          (job.employee_name && job.employee_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          job.job_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
-          job.repair_status.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      : [];
+    ? jobs.filter((job: {
+      job_id: string;
+      repair_description: string;
+      product_name: string;
+      product_image: string;
+      employee_name?: string;
+      repair_status: string;
+    }) =>
+      job.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (job.employee_name && job.employee_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      job.job_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.repair_status.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    : [];
 
   return (
     <div className="max-w-6xl mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
-    
+
 
       {/* Job Table  */}
       <div className="container mx-auto mt-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">JOB Details</h1>
-          
-          <button
-            onClick={handleInventoryUpdateClick}
-            className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-sm flex items-center"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            Update Used Inventory
-          </button>
+
+          <div className="flex space-x-3"> {/* Single container for both buttons */}
+            <button
+              onClick={handleInventoryUpdateClick}
+              className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-sm flex items-center"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              Add Used Inventory
+            </button>
+            <button
+              onClick={handleNavigateToUsedInventory}
+              data-tip={!selectedJob ? 'Please select a job first' : ''}
+              className={`px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors shadow-sm flex items-center ${selectedJob ? '' : 'bg-purple-300 cursor-not-allowed'
+                }`}
+              disabled={!selectedJob}
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                ></path>
+              </svg>
+              Used Inventory
+            </button>
+          </div>
         </div>
 
         {/* Search Bar  */}
@@ -241,38 +277,36 @@ const JobDetails = () => {
                 product_image: string;
                 employee_name?: string;
                 repair_status: string;
-              }) => ( 
+              }) => (
                 <tr
                   key={job.job_id}
                   onClick={() => handleRowClick(job)}
-                  className={`border-t border-gray-200 hover:bg-gray-50 transition-colors ${
-                    selectedJob?.job_id === job.job_id ? 'bg-blue-50' : ''
-                  }`}
+                  className={`border-t border-gray-200 hover:bg-gray-50 transition-colors ${selectedJob?.job_id === job.job_id ? 'bg-blue-50' : ''
+                    }`}
                 >
                   <td className="px-4 py-3 text-sm text-gray-700">{job.job_id}</td>
                   <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate">{job.repair_description}</td>
                   <td className="px-4 py-3 text-sm text-gray-700">{job.product_name}</td>
                   <td className="px-4 py-3">
-                    <img 
-                      src={job.product_image} 
-                      alt="Product" 
+                    <img
+                      src={job.product_image}
+                      alt="Product"
                       className="w-16 h-16 object-cover rounded-md border border-gray-200 shadow-sm"
                     />
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700">
-                    {job.employee_name || 
+                    {job.employee_name ||
                       <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
                         Unassigned
                       </span>
                     }
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                      job.repair_status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${job.repair_status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                       job.repair_status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                      job.repair_status === 'Completed' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
+                        job.repair_status === 'Completed' ? 'bg-green-100 text-green-800' :
+                          'bg-gray-100 text-gray-800'
+                      }`}>
                       {job.repair_status}
                     </span>
                   </td>
@@ -340,81 +374,81 @@ const JobDetails = () => {
       )}
 
       {/* Update Inventory Modal */}
-{isInventoryModalOpen && (
-  <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
-    <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-      <h2 className="text-xl font-bold mb-4">Update Used Inventory</h2>
+      {isInventoryModalOpen && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+            <h2 className="text-xl font-bold mb-4">Update Used Inventory</h2>
 
-      {/* Display Error Messages */}
-      {errorMessages.length > 0 && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
-          <ul>
-            {errorMessages.map((msg, index) => (
-              <li key={index}>{msg}</li>
-            ))}
-          </ul>
+            {/* Display Error Messages */}
+            {errorMessages.length > 0 && (
+              <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+                <ul>
+                  {errorMessages.map((msg, index) => (
+                    <li key={index}>{msg}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <form onSubmit={handleInventorySubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium">Inventory Item</label>
+                <select
+                  value={selectedInventory}
+                  onChange={handleInventoryChange}
+                  className="w-full px-4 py-2 border rounded"
+                >
+                  <option value="">Select Inventory Item</option>
+                  {inventoryItems.map((item) => (
+                    <option key={item.inventoryItem_id} value={item.inventoryItem_id}>
+                      {item.item_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium">Batch</label>
+                <select
+                  value={selectedBatch}
+                  onChange={(e) => setSelectedBatch(e.target.value)}
+                  className="w-full px-4 py-2 border rounded"
+                  disabled={!selectedInventory}
+                >
+                  <option value="">Select Batch</option>
+                  {batches.map((batch) => (
+                    <option key={batch.batch_no} value={batch.batch_no}>
+                      Batch #{batch.batch_no} - Price: {batch.unitprice} - Quantity: {batch.quantity} - Supplier: {batch.supplier_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium">Quantity Used</label>
+                <input
+                  type="number"
+                  value={quantityUsed}
+                  onChange={(e) => setQuantityUsed(e.target.value)}
+                  className="w-full px-4 py-2 border rounded"
+                  placeholder="Enter quantity used"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelInventoryUpdate}
+                className="ml-2 px-4 py-2 bg-red-500 text-white rounded"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
         </div>
       )}
-
-      <form onSubmit={handleInventorySubmit}>
-        <div className="mb-4">
-          <label className="block text-sm font-medium">Inventory Item</label>
-          <select
-            value={selectedInventory}
-            onChange={handleInventoryChange}
-            className="w-full px-4 py-2 border rounded"
-          >
-            <option value="">Select Inventory Item</option>
-            {inventoryItems.map((item) => (
-              <option key={item.inventoryItem_id} value={item.inventoryItem_id}>
-                {item.item_name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium">Batch</label>
-          <select
-            value={selectedBatch}
-            onChange={(e) => setSelectedBatch(e.target.value)}
-            className="w-full px-4 py-2 border rounded"
-            disabled={!selectedInventory}
-          >
-            <option value="">Select Batch</option>
-            {batches.map((batch) => (
-              <option key={batch.batch_no} value={batch.batch_no}>
-                Batch #{batch.batch_no} - Price: {batch.unitprice} - Quantity: {batch.quantity} - Supplier: {batch.supplier_name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium">Quantity Used</label>
-          <input
-            type="number"
-            value={quantityUsed}
-            onChange={(e) => setQuantityUsed(e.target.value)}
-            className="w-full px-4 py-2 border rounded"
-            placeholder="Enter quantity used"
-          />
-        </div>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Save
-        </button>
-        <button
-          type="button"
-          onClick={handleCancelInventoryUpdate}
-          className="ml-2 px-4 py-2 bg-red-500 text-white rounded"
-        >
-          Cancel
-        </button>
-      </form>
-    </div>
-  </div>
-)}
       <UpdateJobAndProduct
         jobId={selectedJobId}
         isOpen={isUpdateModalOpen}

@@ -30,8 +30,16 @@ const menuItems = [
       { path: '/jobAndCustomer/register', label: 'Register Job' },
       { path: '/jobs/view', label: 'View Jobs' },
       {path: '/jobs/myJobs', label: 'My Jobs'},
+      {path: '/warranty-eligible-jobs', label: 'Warrenty Eligible Jobs'},
+
     ],
   },
+  { path: '/warranty-eligible-jobs', icon: Wrench, label: 'Warrenty claims', subItems: [
+    { path: '/jobAndCustomer/register', label: 'Register Job' },
+    {path: '/warranty-eligible-jobs', label: 'Warrenty Eligible Jobs'},
+
+  ],
+},
   { path: '/customer/view', icon: Users, label: 'Customer Details', subItems: [
       { path: '/customer/view', label: 'View Customers' },
       { path: '/jobAndCustomer/register', label: 'Add Customer And Job' },

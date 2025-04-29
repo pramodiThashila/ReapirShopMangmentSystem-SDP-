@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import UpdateJobAndProduct from "./UpdateJobAndProduct";
 import { useNavigate } from 'react-router-dom';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 
 const JobDetails = () => {
-  const [jobs, setJobs] = useState<{ 
-    job_id: string; 
-    repair_description: string; 
+  const [jobs, setJobs] = useState<{
+    job_id: string;
+    repair_description: string;
     product_name: string;
-    product_image: string; 
-    employee_name?: string; 
-    repair_status: string; 
+    product_image: string;
+    employee_name?: string;
+    repair_status: string;
   }[]>([]);
   const [selectedJob, setSelectedJob] = useState<{
     job_id: string;
@@ -20,7 +21,7 @@ const JobDetails = () => {
     employee_name?: string;
     repair_status: string;
   } | null>(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+ // const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<{ inventoryItem_id: string; item_name: string }[]>([]);
@@ -30,11 +31,11 @@ const JobDetails = () => {
   const [quantityUsed, setQuantityUsed] = useState('');
   const [errorMessages, setErrorMessages] = useState<string[]>([]); // State for error messages
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState(''); 
+  const [searchQuery, setSearchQuery] = useState('');
   const [alertMessage, setAlertMessage] = useState<string>("");
   const [alertType, setAlertType] = useState<"success" | "error" | "warning" | "info">("info");
   const [showAlert, setShowAlert] = useState<boolean>(false);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   // Fetch all jobs
   const fetchJobs = async () => {
@@ -75,13 +76,13 @@ const JobDetails = () => {
   };
 
   // Handle row selection
-  const handleRowClick = (job: { 
-    job_id: string; 
-    repair_description: string; 
+  const handleRowClick = (job: {
+    job_id: string;
+    repair_description: string;
     product_name: string;
-    product_image: string; 
-    employee_name?: string; 
-    repair_status: string; 
+    product_image: string;
+    employee_name?: string;
+    repair_status: string;
   }) => {
     setSelectedJob(job);
   };
@@ -158,12 +159,12 @@ const JobDetails = () => {
 
   //  filtering logic 
   const filteredJobs = searchQuery
-    ? jobs.filter(job => 
-        job.product_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        (job.employee_name && job.employee_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        job.job_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
-        job.repair_status.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? jobs.filter(job =>
+      job.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (job.employee_name && job.employee_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      job.job_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.repair_status.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : jobs;
 
   //  handle advance invoice button click
@@ -173,27 +174,34 @@ const JobDetails = () => {
       setAlertMessage("Please select a job first.");
       setAlertType("warning");
       setShowAlert(true);
-      
+
       // Auto hide alert after 3 seconds
       setTimeout(() => {
         setShowAlert(false);
       }, 3000);
       return;
     }
-    
+
     navigate(`/advance-payment-invoice?jobId=${selectedJob.job_id}`);
+  };
+
+  const handleNavigateToUsedInventory = () => {
+    if (!selectedJob) {
+      alert('Please select a job first.');
+      return;
+    }
+    navigate(`/jobs/${selectedJob.job_id}/used-inventory`);
   };
 
   return (
     <div className="max-w-6xl mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
       {/* Alert message display */}
       {showAlert && (
-        <div className={`mb-4 p-4 rounded-lg ${
-          alertType === "success" ? "bg-green-100 text-green-800" :
-          alertType === "error" ? "bg-red-100 text-red-800" :
-          alertType === "warning" ? "bg-yellow-100 text-yellow-800" :
-          "bg-blue-100 text-blue-800"
-        }`}>
+        <div className={`mb-4 p-4 rounded-lg ${alertType === "success" ? "bg-green-100 text-green-800" :
+            alertType === "error" ? "bg-red-100 text-red-800" :
+              alertType === "warning" ? "bg-yellow-100 text-yellow-800" :
+                "bg-blue-100 text-blue-800"
+          }`}>
           {alertMessage}
         </div>
       )}
@@ -202,13 +210,12 @@ const JobDetails = () => {
       <div className="container mx-auto mt-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">JOB Details</h1>
-          
+
           <div className="flex space-x-3">
             <button
               onClick={handleAdvanceInvoiceClick}
-              className={`px-4 py-2 text-white rounded-lg shadow-sm flex items-center ${
-                selectedJob ? "bg-blue-500 hover:bg-blue-600" : "bg-blue-300 cursor-not-allowed"
-              } transition-colors`}
+              className={`px-4 py-2 text-white rounded-lg shadow-sm flex items-center ${selectedJob ? "bg-blue-500 hover:bg-blue-600" : "bg-blue-300 cursor-not-allowed"
+                } transition-colors`}
               disabled={!selectedJob}
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -216,19 +223,45 @@ const JobDetails = () => {
               </svg>
               Create Advance Invoice
             </button>
-            
+
             <button
               onClick={handleInventoryUpdateClick}
-              className={`px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-sm flex items-center ${
-                selectedJob ? "" : "bg-yellow-300 cursor-not-allowed"
-              }`}
+              className={`px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-sm flex items-center ${selectedJob ? "" : "bg-yellow-300 cursor-not-allowed"
+                }`}
               disabled={!selectedJob}
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
               </svg>
-              Update Used Inventory
+              Add Used Inventory
             </button>
+            <div className="flex space-x-3">
+              {/* Other buttons */}
+              <button
+                onClick={handleNavigateToUsedInventory}
+                data-tip={!selectedJob ? 'Please select a job first' : ''}
+                className={`px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors shadow-sm flex items-center ${selectedJob ? '' : 'bg-purple-300 cursor-not-allowed'
+                  }`}
+                disabled={!selectedJob}
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  ></path>
+                </svg>
+                Used Inventory
+              </button>
+              <ReactTooltip anchorSelect="[data-tip]" place="top" />
+            </div>
           </div>
         </div>
 
@@ -257,43 +290,41 @@ const JobDetails = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredJobs.map((job) => ( 
+              {filteredJobs.map((job) => (
                 <tr
                   key={job.job_id}
                   onClick={() => handleRowClick(job)}
-                  className={`border-t border-gray-200 hover:bg-gray-50 transition-colors ${
-                    selectedJob?.job_id === job.job_id ? 'bg-blue-50' : ''
-                  }`}
+                  className={`border-t border-gray-200 hover:bg-gray-50 transition-colors ${selectedJob?.job_id === job.job_id ? 'bg-blue-50' : ''
+                    }`}
                 >
                   <td className="px-4 py-3 text-sm text-gray-700">{job.job_id}</td>
                   <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate">{job.repair_description}</td>
                   <td className="px-4 py-3 text-sm text-gray-700">{job.product_name}</td>
                   <td className="px-4 py-3">
-                    <img 
-                      src={job.product_image} 
-                      alt="Product" 
+                    <img
+                      src={job.product_image}
+                      alt="Product"
                       className="w-16 h-16 object-cover rounded-md border border-gray-200 shadow-sm"
                     />
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700">
-                    {job.employee_name || 
+                    {job.employee_name ||
                       <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
                         Unassigned
                       </span>
                     }
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                      job.repair_status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                      job.repair_status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                      job.repair_status === 'Completed' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${job.repair_status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                        job.repair_status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                          job.repair_status === 'Completed' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                      }`}>
                       {job.repair_status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <button
+                    {/*<button
                       onClick={(e) => {
                         e.stopPropagation();
                         setIsViewModalOpen(true);
@@ -301,7 +332,7 @@ const JobDetails = () => {
                       className="px-3 py-1 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors mr-2"
                     >
                       View
-                    </button>
+                    </button>*/}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -309,7 +340,7 @@ const JobDetails = () => {
                       }}
                       className="px-3 py-1 text-sm text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
                     >
-                      Update
+                      view & Edit
                     </button>
                   </td>
                 </tr>
@@ -335,7 +366,8 @@ const JobDetails = () => {
       </div>
 
       {/* View Modal */}
-      {isViewModalOpen && selectedJob && (
+
+      {/*{isViewModalOpen && selectedJob && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
             <h2 className="text-xl font-bold mb-4">Job Details</h2>
@@ -353,84 +385,84 @@ const JobDetails = () => {
             </button>
           </div>
         </div>
-      )}
+      )}*/}
 
       {/* Update Inventory Modal */}
-{isInventoryModalOpen && (
-  <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
-    <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-      <h2 className="text-xl font-bold mb-4">Update Used Inventory</h2>
+      {isInventoryModalOpen && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+            <h2 className="text-xl font-bold mb-4">Update Used Inventory</h2>
 
-      {/* Display Error Messages */}
-      {errorMessages.length > 0 && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
-          <ul>
-            {errorMessages.map((msg, index) => (
-              <li key={index}>{msg}</li>
-            ))}
-          </ul>
+            {/* Display Error Messages */}
+            {errorMessages.length > 0 && (
+              <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+                <ul>
+                  {errorMessages.map((msg, index) => (
+                    <li key={index}>{msg}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <form onSubmit={handleInventorySubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium">Inventory Item</label>
+                <select
+                  value={selectedInventory}
+                  onChange={handleInventoryChange}
+                  className="w-full px-4 py-2 border rounded"
+                >
+                  <option value="">Select Inventory Item</option>
+                  {inventoryItems.map((item) => (
+                    <option key={item.inventoryItem_id} value={item.inventoryItem_id}>
+                      {item.item_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium">Batch</label>
+                <select
+                  value={selectedBatch}
+                  onChange={(e) => setSelectedBatch(e.target.value)}
+                  className="w-full px-4 py-2 border rounded"
+                  disabled={!selectedInventory}
+                >
+                  <option value="">Select Batch</option>
+                  {batches.map((batch) => (
+                    <option key={batch.batch_no} value={batch.batch_no}>
+                      Batch #{batch.batch_no} - Price: {batch.unitprice} - Quantity: {batch.quantity} - Supplier: {batch.supplier_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium">Quantity Used</label>
+                <input
+                  type="number"
+                  value={quantityUsed}
+                  onChange={(e) => setQuantityUsed(e.target.value)}
+                  className="w-full px-4 py-2 border rounded"
+                  placeholder="Enter quantity used"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelInventoryUpdate}
+                className="ml-2 px-4 py-2 bg-red-500 text-white rounded"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
         </div>
       )}
-
-      <form onSubmit={handleInventorySubmit}>
-        <div className="mb-4">
-          <label className="block text-sm font-medium">Inventory Item</label>
-          <select
-            value={selectedInventory}
-            onChange={handleInventoryChange}
-            className="w-full px-4 py-2 border rounded"
-          >
-            <option value="">Select Inventory Item</option>
-            {inventoryItems.map((item) => (
-              <option key={item.inventoryItem_id} value={item.inventoryItem_id}>
-                {item.item_name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium">Batch</label>
-          <select
-            value={selectedBatch}
-            onChange={(e) => setSelectedBatch(e.target.value)}
-            className="w-full px-4 py-2 border rounded"
-            disabled={!selectedInventory}
-          >
-            <option value="">Select Batch</option>
-            {batches.map((batch) => (
-              <option key={batch.batch_no} value={batch.batch_no}>
-                Batch #{batch.batch_no} - Price: {batch.unitprice} - Quantity: {batch.quantity} - Supplier: {batch.supplier_name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium">Quantity Used</label>
-          <input
-            type="number"
-            value={quantityUsed}
-            onChange={(e) => setQuantityUsed(e.target.value)}
-            className="w-full px-4 py-2 border rounded"
-            placeholder="Enter quantity used"
-          />
-        </div>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Save
-        </button>
-        <button
-          type="button"
-          onClick={handleCancelInventoryUpdate}
-          className="ml-2 px-4 py-2 bg-red-500 text-white rounded"
-        >
-          Cancel
-        </button>
-      </form>
-    </div>
-  </div>
-)}
       <UpdateJobAndProduct
         jobId={selectedJobId}
         isOpen={isUpdateModalOpen}
