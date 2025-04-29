@@ -6,7 +6,8 @@ const moment = require("moment");
 const router = express.Router();
 
 // Create Job
-router.post(
+
+{/*router.post(
     "/register",
     [
         body("repairDescription")
@@ -34,9 +35,7 @@ router.post(
                 }
                 return true;
             }),
-        body("estimatedTime")
-            .notEmpty().withMessage("Estimated time is required")
-            .isInt({ min: 1 }).withMessage("Estimated time must be a positive integer (in days)"),
+        
         body("customerID")
             .notEmpty().withMessage("Customer ID is required")
             .isInt().withMessage("Customer ID must be an integer"),
@@ -54,8 +53,8 @@ router.post(
         try {
             const { repairDescription, repairStatus, handoverDate, receiveDate, estimatedTime, customerID, employeeID, productID } = req.body;
             const [result] = await db.query(
-                "INSERT INTO jobs (repair_description, repair_status, handover_date, receive_date, estimated_time, customer_id, employee_id, product_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                [repairDescription, repairStatus, handoverDate, receiveDate, estimatedTime, customerID, employeeID, productID]
+                "INSERT INTO jobs (repair_description, repair_status, handover_date, receive_date, customer_id, employee_id, product_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                [repairDescription, repairStatus, handoverDate, receiveDate, customerID, employeeID, productID]
             );
 
             res.status(201).json({ message: "Job created successfully!", jobId: result.insertId });
@@ -63,7 +62,7 @@ router.post(
             res.status(500).json({ error: error.message });
         }
     }
-);
+);*/}
 
 // Get All Jobs
 router.get("/all", async (req, res) => {
@@ -76,6 +75,7 @@ router.get("/all", async (req, res) => {
                 j.handover_date,
                 j.receive_date,
                 j.customer_id,
+                j.is_a_warrentyClaim
                 c.firstName AS customer_name,
                 j.employee_id,
                 e.first_name AS employee_name,
@@ -155,6 +155,28 @@ router.get("/myjobs/:employeeId", async (req, res) => {
     }
 });
 
+//register a warrenty claim
+router.post("/registerWarrantyJob", async (req, res) => {
+    const { employee_id, customer_id, product_id, repair_description, receive_date ,oldjobid} = req.body;
+  
+    try {
+      // Insert the new job into the database
+      const job = await db.query(
+        `INSERT INTO jobs (employee_id, customer_id, product_id, repair_description, receive_date, repair_status,is_a_warrentyClaim)
+         VALUES (?, ?, ?, ?, ?, 'Pending',1)`,
+        [employee_id, customer_id, product_id, repair_description, receive_date]
+      );
+
+      const invoice = await db.query(`Update invoice SET Is_warranty_claimed = 1 WHERE job_id = ?`, [oldjobid]);
+  
+      res.status(201).json({ message: "Warranty job registered successfully!" });
+    } catch (error) {
+      console.error("Error registering warranty job:", error);
+      res.status(500).json({ message: "Failed to register warranty job." });
+    }
+  });
+
+//get each job details
 router.get("/eachjob/:id", async (req, res) => {
     try {
         const [jobs] = await db.query(`
@@ -278,6 +300,71 @@ router.delete("/:id", async (req, res) => {
 });
 
 
+// Get warranty-eligible job list with customer, job, and employee details
+router.get('/get/warrantyEligibleJobs', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                i.Invoice_Id,
+                j.job_id,
+                j.repair_description,
+                j.repair_status,
+                j.receive_date,
+                j.handover_date,
+                c.customer_id,
+                CONCAT(c.firstName, ' ', c.lastName) AS customer_name,
+                c.email AS customer_email,
+                e.employee_id,
+                CONCAT(e.first_name, ' ', e.last_name) AS employee_name,
+                e.role AS employee_role,
+                p.product_id,
+                p.product_name,
+                p.model,
+                p.model_no,
+                i.TotalCost_for_Parts,
+                i.Labour_Cost,
+                i.Total_Amount,
+                i.Is_warranty_claimed,
+                i.warranty_exp_date,
+                CASE 
+                    WHEN i.warranty_exp_date >= CURDATE() THEN 'Active'
+                    ELSE 'Expired'
+                END AS warranty_status,
+                CASE 
+                    WHEN i.Is_warranty_claimed = 1 THEN 'warranty claimed'
+                    ELSE 'not claimed'
+                END AS warranty_claim_status
+            FROM 
+                invoice i
+            JOIN 
+                jobs j ON i.job_id = j.job_id
+            JOIN 
+                customers c ON i.customer_id = c.customer_id
+            JOIN 
+                employees e ON i.employee_id = e.employee_id
+            JOIN 
+                products p ON j.product_id = p.product_id
+            WHERE 
+                i.warranty = 1 -- Only include warranty-eligible jobs
+            ORDER BY 
+                i.warranty_exp_date DESC;
+        `;
+
+        const [warrantyJobs] = await db.query(query);
+
+        if (warrantyJobs.length === 0) {
+            return res.status(404).json({ message: 'No warranty-eligible jobs found' });
+        }
+
+        res.status(200).json({
+            message: 'Warranty-eligible jobs retrieved successfully',
+            jobs: warrantyJobs
+        });
+    } catch (error) {
+        console.error('Error fetching warranty-eligible jobs:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 
 module.exports = router;

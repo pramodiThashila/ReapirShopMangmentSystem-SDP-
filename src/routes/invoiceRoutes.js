@@ -439,6 +439,59 @@ router.get('/check/:jobId', async (req, res) => {
     }
 });
 
+// Get all warranty-eligible jobs
+router.get('/warrantyEligibleJobs', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                j.job_id,
+                j.repair_description,
+                j.repair_status,
+                j.receive_date,
+                j.handover_date,
+                c.customer_id,
+                CONCAT(c.firstName, ' ', c.lastName) as customer_name,
+                c.email as customer_email,
+                p.product_id,
+                p.product_name,
+                p.model,
+                p.model_no,
+                i.Invoice_Id,
+                i.warranty_exp_date,
+                CASE 
+                    WHEN i.warranty_exp_date >= CURDATE() THEN 'Active'
+                    ELSE 'Expired'
+                END as warranty_status
+            FROM 
+                jobs j
+            JOIN 
+                invoice i ON j.job_id = i.job_id
+            JOIN 
+                customers c ON j.customer_id = c.customer_id
+            JOIN 
+                products p ON j.product_id = p.product_id
+            WHERE 
+                i.warranty = 1 -- Only include warranty-eligible jobs
+            ORDER BY 
+                i.warranty_exp_date DESC;
+        `;
+
+        const [warrantyJobs] = await pool.query(query);
+
+        if (warrantyJobs.length === 0) {
+            return res.status(404).json({ message: 'No warranty-eligible jobs found' });
+        }
+
+        res.status(200).json({
+            message: 'Warranty-eligible jobs retrieved successfully',
+            jobs: warrantyJobs
+        });
+    } catch (error) {
+        console.error('Error fetching warranty-eligible jobs:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Helper function to determine warranty status
 function determineWarrantyStatus(hasWarranty, expiryDate) {
     if (!hasWarranty) return 'No Warranty';

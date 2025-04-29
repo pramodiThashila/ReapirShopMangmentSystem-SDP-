@@ -45,6 +45,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: true,
     },
+    Is_warranty_claimed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
     
   },
   {
