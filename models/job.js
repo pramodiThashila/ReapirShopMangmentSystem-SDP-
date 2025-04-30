@@ -26,6 +26,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    rating: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
     customer_id: {
       type: DataTypes.INTEGER,
       allowNull: true,

@@ -75,7 +75,9 @@ router.get("/all", async (req, res) => {
                 j.handover_date,
                 j.receive_date,
                 j.customer_id,
-                j.is_a_warrentyClaim
+                j.is_a_warrentyClaim,
+                j.feedback,
+                j.rating,
                 c.firstName AS customer_name,
                 j.employee_id,
                 e.first_name AS employee_name,
@@ -90,6 +92,46 @@ router.get("/all", async (req, res) => {
                 employees e ON j.employee_id = e.employee_id
             LEFT JOIN 
                 products p ON j.product_id = p.product_id
+        `);
+
+        res.status(200).json(jobs);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get All Jobs
+router.get("/getallfeedbacks", async (req, res) => {
+    try {
+        const [jobs] = await db.query(`
+            SELECT 
+                j.job_id,
+                j.repair_description,
+                j.repair_status,
+                j.handover_date,
+                j.receive_date,
+                j.customer_id,
+                j.is_a_warrentyClaim,
+                j.feedback,
+                j.rating,
+                c.firstName AS customer_name,
+                j.employee_id,
+                e.first_name AS employee_name,
+                j.product_id,
+                p.product_image,
+                p.product_name
+            FROM 
+                jobs j
+            LEFT JOIN 
+                customers c ON j.customer_id = c.customer_id
+            LEFT JOIN 
+                employees e ON j.employee_id = e.employee_id
+            LEFT JOIN 
+                products p ON j.product_id = p.product_id
+            WHERE 
+                feedback IS NOT NULL 
+            ORDER BY 
+                j.receive_date DESC    
         `);
 
         res.status(200).json(jobs);
@@ -152,6 +194,55 @@ router.get("/myjobs/:employeeId", async (req, res) => {
     } catch (error) {
         console.error("Error fetching employee jobs:", error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+// Get job ID(s) based on phone number
+router.get('/jobsByPhone/:phoneNumber', async (req, res) => {
+    const { phoneNumber } = req.params;
+
+    try {
+        const query = `
+            SELECT 
+                j.job_id,
+                j.repair_description,
+                j.repair_status,
+                j.receive_date,
+                j.handover_date,
+                c.customer_id,
+                CONCAT(c.firstName, ' ', c.lastName) AS customer_name,
+                c.email AS customer_email,
+                p.product_id,
+                p.product_name,
+                p.model,
+                p.model_no
+            FROM 
+                jobs j
+            JOIN 
+                customers c ON j.customer_id = c.customer_id
+            JOIN 
+                telephones_customer tc ON c.customer_id = tc.customer_id
+            JOIN 
+                products p ON j.product_id = p.product_id
+            WHERE 
+                tc.phone_number = ?
+            ORDER BY 
+                j.receive_date DESC;
+        `;
+
+        const [jobs] = await db.query(query, [phoneNumber]);
+
+        if (jobs.length === 0) {
+            return res.status(404).json({ message: 'No jobs found for the provided phone number' });
+        }
+
+        res.status(200).json({
+            message: 'Jobs retrieved successfully',
+            jobs: jobs
+        });
+    } catch (error) {
+        console.error('Error fetching jobs by phone number:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -285,6 +376,50 @@ router.put(
         }
     }
 );
+
+
+// Update feedback and rating for a job
+router.put('/updateFeedback/:jobId', [
+    body('feedback')
+        .optional()
+        .isString().withMessage('Feedback must be a string')
+        .isLength({ max: 500 }).withMessage('Feedback cannot exceed 500 characters'),
+    body('rating')
+        .optional()
+        .isInt({ min: 1, max: 5 }).withMessage('Rating must be an integer between 1 and 5')
+], async (req, res) => {
+    const { jobId } = req.params;
+    const { feedback, rating } = req.body;
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        // Check if the job exists
+        const [existingJob] = await db.query("SELECT * FROM jobs WHERE job_id = ?", [jobId]);
+        if (existingJob.length === 0) {
+            return res.status(404).json({ message: "Job not found" });
+        }
+
+        // Update feedback and rating
+        await db.query(
+            `UPDATE jobs 
+             SET 
+                feedback = COALESCE(?, feedback),
+                rating = COALESCE(?, rating)
+             WHERE job_id = ?`,
+            [feedback, rating, jobId]
+        );
+
+        res.status(200).json({ message: "Feedback and rating updated successfully!" });
+    } catch (error) {
+        console.error('Error updating feedback and rating:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 
 
 
