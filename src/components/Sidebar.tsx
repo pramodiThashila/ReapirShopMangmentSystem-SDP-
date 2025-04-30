@@ -30,8 +30,7 @@ const menuItems = [
       { path: '/jobAndCustomer/register', label: 'Register Job' },
       { path: '/jobs/view', label: 'View Jobs' },
       {path: '/jobs/myJobs', label: 'My Jobs'},
-      {path: '/warranty-eligible-jobs', label: 'Warrenty Eligible Jobs'},
-
+      
     ],
   },
   { path: '/warranty-eligible-jobs', icon: Wrench, label: 'Warrenty claims', subItems: [
@@ -64,6 +63,7 @@ const menuItems = [
       { path: '/supplier/register', label: 'Add Supplier' },
     ],
   },
+  { path: '/customer-feedback', icon: BarChart2, label: 'Customer Feedback' },
   { path: '/reports', icon: BarChart2, label: 'Reports' },
 ];
 

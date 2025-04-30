@@ -27,6 +27,7 @@ import InventoryPurchases from './pages/InventoryPurchasesView';
 import UsedInventoryPage from './pages/UsedInventoryPage';
 import WarrantyEligibleJobs from './pages/WarrantyEligibleJobs';
 import RegisterWarrantyJob from './pages/RegisterWarrantyJob';
+import CustomerFeedback from './pages/CustomerFeedback';
 //import UsedInventoryList from './components/UsedInventoryList';
 
 
@@ -74,6 +75,7 @@ function App() {
                        <Route path="/jobs/:jobId/used-inventory" element={<UsedInventoryPage />} />
                        <Route path="/warranty-eligible-jobs" element={<WarrantyEligibleJobs />} />
                        <Route path="/jobs/register-warranty/:id" element={<RegisterWarrantyJob />} />
+                       <Route path="/customer-feedback" element={<CustomerFeedback />} />
 
                     </Routes>
                   </main>
