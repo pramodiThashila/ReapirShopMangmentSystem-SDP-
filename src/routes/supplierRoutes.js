@@ -1,6 +1,7 @@
 const express = require("express");
 const db = require("../config/db");
 const { body, validationResult } = require("express-validator");
+const bcrypt = require("bcryptjs");
 
 const router = express.Router();
 
@@ -27,6 +28,8 @@ router.post(
         body("address")
             .notEmpty().withMessage("Address is required")
             .isLength({ max: 255 }).withMessage("Address should not exceed 255 characters"),
+        body("password")
+            .notEmpty().withMessage("Password is required")    
     ],
     async (req, res) => {
         const errors = validationResult(req);
@@ -34,8 +37,10 @@ router.post(
             return res.status(400).json({ errors: errors.array() });
         }
 
+        
+
         try {
-            const { supplier_name, email, phone_number, address } = req.body;
+            const { supplier_name, email, phone_number, address ,password} = req.body;
 
             // Check if email already exists
             const [existingSupplier] = await db.query(
@@ -56,13 +61,15 @@ router.post(
                 }
             }
 
+            const hashpassword = await bcrypt.hash(password,10);
             // Insert supplier
             const [result] = await db.query(
-                "INSERT INTO suppliers (supplier_name, email, address) VALUES (?, ?, ?)",
-                [supplier_name, email, address]
+                "INSERT INTO suppliers (supplier_name, email, address,password) VALUES (?, ?, ?,?)",
+                [supplier_name, email, address,hashpassword]
             );
 
             const supplierId = result.insertId;
+            
 
             // Insert multiple phone numbers
             if (phone_number.length > 0) {
@@ -76,6 +83,65 @@ router.post(
         }
     }
 );
+
+// Supplier Login
+router.post('/supplierlogin', [
+    body('email')
+        .notEmpty().withMessage('Email is required')
+        .isEmail().withMessage('Invalid email format'),
+    body('password')
+        .notEmpty().withMessage('Password is required')
+], async (req, res) => {
+    const { email, password } = req.body;
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        // Check if the supplier exists
+        const [supplier] = await db.query(
+            "SELECT * FROM suppliers WHERE email = ?",
+            [email]
+        );
+
+        if (supplier.length === 0) {
+            return res.status(404).json({ message: "Supplier not found" });
+        }
+
+        const supplierData = supplier[0];
+
+        // Compare the provided password with the hashed password
+        const isPasswordValid = await bcrypt.compare(password, supplierData.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "Invalid email or password" });
+        }
+
+        // Fetch phone numbers from the supplier_phones table
+        const [phoneNumbers] = await db.query(
+            "SELECT phone_number FROM supplier_phones WHERE supplier_id = ?",
+            [supplierData.supplier_id]
+        );
+
+        const phoneNumberList = phoneNumbers.map(phone => phone.phone_number);
+
+        // Return success response
+        res.status(200).json({
+            message: "Login successful",
+            supplier: {
+                supplier_id: supplierData.supplier_id,
+                supplier_name: supplierData.supplier_name,
+                email: supplierData.email,
+                address: supplierData.address,
+                phone_number: phoneNumberList
+            }
+        });
+    } catch (error) {
+        console.error("Error during supplier login:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
 
 // Get All Suppliers
 router.get("/all", async (req, res) => {
@@ -119,7 +185,7 @@ router.get("/:id", async (req, res) => {
 
 // Update Supplier (Full Update)
 router.put(
-    "/:id",
+    "/update/:id",
     [
         body("supplier_name").optional().isLength({ max: 100 }),
         body("email").optional().isEmail(),
@@ -156,6 +222,58 @@ router.put(
         }
     }
 );
+
+
+// Update Supplier Password
+router.put('/updatePassword/:id', [
+    body('currentPassword')
+        .notEmpty().withMessage('Current password is required'),
+    body('newPassword')
+        .notEmpty().withMessage('New password is required')
+        .isLength({ min: 6 }).withMessage('New password must be at least 6 characters long')
+], async (req, res) => {
+    const { id } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        // Check if the supplier exists
+        const [supplier] = await db.query(
+            "SELECT * FROM suppliers WHERE supplier_id = ?",
+            [id]
+        );
+
+        if (supplier.length === 0) {
+            return res.status(404).json({ message: "Supplier not found" });
+        }
+
+        const supplierData = supplier[0];
+
+        // Compare the current password with the hashed password
+        const isPasswordValid = await bcrypt.compare(currentPassword, supplierData.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "Current password is incorrect" });
+        }
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update the password in the database
+        await db.query(
+            "UPDATE suppliers SET password = ? WHERE supplier_id = ?",
+            [hashedPassword, id]
+        );
+
+        res.status(200).json({ message: "Password updated successfully!" });
+    } catch (error) {
+        console.error("Error updating password:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
 
 // Delete Supplier
 router.delete("/:id", async (req, res) => {

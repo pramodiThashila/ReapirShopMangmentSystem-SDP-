@@ -67,6 +67,49 @@ router.get("/allBatchcount", async (req, res) => {
     }
 });
 
+// Get all out-of-stock and near-out-of-stock products
+router.get('/lowStock', async (req, res) => {
+    try {
+        // Query to get inventory items with total quantity and stock status
+        const [inventory] = await db.query(`
+            SELECT 
+                i.inventoryItem_id,
+                i.item_name,
+                COALESCE(SUM(ib.quantity), 0) AS total_quantity,
+                i.outOfStockLevel,
+                i.specification
+            FROM 
+                inventory i
+            LEFT JOIN 
+                inventorybatch ib 
+            ON 
+                i.inventoryItem_id = ib.inventoryItem_id
+            GROUP BY 
+                i.inventoryItem_id, i.item_name, i.outOfStockLevel
+            HAVING 
+                total_quantity = 0 OR total_quantity < i.outOfStockLevel
+        `);
+
+        // Add stock status to each inventory item
+        const lowStockItems = inventory.map(item => {
+            const status = item.total_quantity == 0 ? "Out of Stock" : "Limited stock";
+            return {
+                ...item, // Copy all the properties of the item object to the new object
+                status // Add the stock status to the new object
+            };
+        });
+
+        // Send the response
+        res.status(200).json({
+            message: "Low stock items retrieved successfully",
+            items: lowStockItems
+        });
+    } catch (err) {
+        console.error("Error fetching low stock items:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 
 //  Get a single inventory item by ID
 router.get(
@@ -99,15 +142,20 @@ router.post(
         body("outOfStockLevel")
             .isInt({ min: 0 })
             .withMessage("Out of Stock Level must be a positive integer"),
+        body("specification")
+            .isString()
+            .withMessage("Specification must be a string")
+            .isLength({ max: 100 })
+            .withMessage("Specification must be less than 100 characters")    
     ],
     validateRequest,
     async (req, res) => {
-        const {  item_name, outOfStockLevel } = req.body;
+        const {  item_name, outOfStockLevel ,specification} = req.body;
 
         try {
             const [result] = await db.query(
-                "INSERT INTO inventory (item_name, outOfStockLevel) VALUES ( ?, ?)",
-                [ item_name, outOfStockLevel]
+                "INSERT INTO inventory (item_name, outOfStockLevel,specification ) VALUES ( ?, ?,?)",
+                [ item_name, outOfStockLevel,specification]
             );
 
             res.status(201).json({ message: "Inventory item added successfully!", id: result.insertId });
