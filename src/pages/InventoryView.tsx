@@ -16,6 +16,7 @@ const InventoryView = () => {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [message, setMessage] = useState('');
+  const [selectedRow, setSelectedRow] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -66,6 +67,19 @@ const InventoryView = () => {
     }));
   };
 
+  const handleRowClick = (itemId: string) => {
+    setSelectedRow(selectedRow === itemId ? null : itemId);
+  };
+
+  const handleRestockClick = () => {
+    if (!selectedRow) {
+      alert('Please select an inventory item to restock');
+      return;
+    }
+    
+    navigate(`/restock/${selectedRow}`);
+  };
+
   const filteredInventory = inventory.filter((item) =>
     item.item_name?.toLowerCase().includes(search.toLowerCase())
   );
@@ -74,21 +88,32 @@ const InventoryView = () => {
     <div className="container mx-auto mt-8 px-4">
       <h2 className="text-2xl font-bold text-center mb-6">View Inventory Details</h2>
 
-      {/* Search Bar */}
-      <div className="flex justify-center mb-6">
-        <input
-          type="text"
-          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Search inventory items..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {/* Search Bar and Restock Button */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="w-full max-w-md">
+          <input
+            type="text"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search inventory items..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <button
+          onClick={handleRestockClick}
+          className={`px-4 py-2 ml-4 text-white rounded-lg ${
+            selectedRow ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
+          }`}
+          disabled={!selectedRow}
+        >
+          Restock
+        </button>
       </div>
 
-      {/* Inventory Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
-          <thead className="bg-gray-100">
+      {/* Table with fixed height for scrolling */}
+      <div className="overflow-y-auto h-[500px] rounded-lg shadow-md border border-gray-200">
+        <table className="min-w-full bg-white">
+          <thead className="bg-gray-100 sticky top-0 z-10">
             <tr>
               <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Inventory ID</th>
               <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Item Name</th>
@@ -100,7 +125,13 @@ const InventoryView = () => {
           </thead>
           <tbody>
             {filteredInventory.map((item) => (
-              <tr key={item.inventoryItem_id} className="border-t border-gray-200 hover:bg-gray-50">
+              <tr 
+                key={item.inventoryItem_id}
+                onClick={() => handleRowClick(item.inventoryItem_id)}
+                className={`border-t border-gray-200 hover:bg-gray-50 cursor-pointer ${
+                  selectedRow === item.inventoryItem_id ? 'bg-blue-50' : ''
+                }`}
+              >
                 <td className="px-4 py-2 text-sm text-gray-700">{item.inventoryItem_id}</td>
                 <td className="px-4 py-2 text-sm text-gray-700">{item.item_name}</td>
                 <td className="px-4 py-2 text-sm text-gray-700">{item.total_quantity}</td>
@@ -122,7 +153,10 @@ const InventoryView = () => {
                 </td>
                 <td className="px-4 py-2 text-center">
                   <button
-                    onClick={() => handleUpdateClick(item)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent row selection when clicking update
+                      handleUpdateClick(item);
+                    }}
                     className="px-3 py-1 text-sm text-white bg-green-500 rounded-lg hover:bg-green-600"
                   >
                     Update

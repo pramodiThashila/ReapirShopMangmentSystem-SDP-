@@ -4,6 +4,7 @@ import axios from 'axios';
 const InventoryItemAdd = () => {
     const [inventoryItem, setInventoryItem] = useState({
         item_name: '',
+        specification: '',
         outOfStockLevel: '',
     });
     const [message, setMessage] = useState('');
@@ -19,6 +20,7 @@ const InventoryItemAdd = () => {
     const handleReset = () => {
         setInventoryItem({
             item_name: '',
+            specification: '',
             outOfStockLevel: '',
         });
     };
@@ -30,6 +32,7 @@ const InventoryItemAdd = () => {
             setMessage('Inventory item added successfully');
             setInventoryItem({
                 item_name: '',
+                specification: '',
                 outOfStockLevel: '',
             });
         } catch (error: any) {
@@ -54,6 +57,20 @@ const InventoryItemAdd = () => {
                         id="item_name"
                         name="item_name"
                         value={inventoryItem.item_name}
+                        onChange={handleChange}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        required
+                    />
+                </div>
+                <div>
+                    <label htmlFor="specification" className="block text-sm font-medium text-gray-700">
+                        Specification note
+                    </label>
+                    <input
+                        type="string"
+                        id="specification"
+                        name="specification"
+                        value={inventoryItem.specification}
                         onChange={handleChange}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         required

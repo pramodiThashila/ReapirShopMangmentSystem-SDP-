@@ -7,13 +7,17 @@ const SupplierRegister = () => {
     email: string;
     phone_number: string[];
     address: string;
+    password: string;
   }>({
     supplier_name: '',
     email: '',
     phone_number: [],
     address: '',
+    password: '',
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,17 +35,43 @@ const SupplierRegister = () => {
     }
   };
 
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setSupplier((prev) => ({
+      ...prev,
+      password: value,
+    }));
+  };
+
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setConfirmPassword(e.target.value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate password and confirm password
+    if (supplier.password !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
+    setPasswordError(''); // Clear any previous password error
+
     try {
-      await axios.post('http://localhost:5000/api/suppliers/register', supplier);
+      await axios.post('http://localhost:5000/api/suppliers/register', {
+        ...supplier,
+        password: supplier.password, // Send only the password to the backend
+      });
       setMessage('Supplier registered successfully');
       setSupplier({
         supplier_name: '',
         email: '',
         phone_number: [],
         address: '',
+        password: '',
       });
+      setConfirmPassword('');
     } catch (error: any) {
       setMessage('Error registering supplier');
       console.error('Error registering supplier:', error);
@@ -57,8 +87,11 @@ const SupplierRegister = () => {
       email: '',
       phone_number: [],
       address: '',
+      password: '',
     });
+    setConfirmPassword('');
     setMessage('');
+    setPasswordError('');
   };
 
   return (
@@ -115,6 +148,33 @@ const SupplierRegister = () => {
             className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+        </div>
+
+        {/* Password */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Password</label>
+          <input
+            type="password"
+            name="password"
+            value={supplier.password}
+            onChange={handlePasswordChange}
+            className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+
+        {/* Confirm Password */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+          <input
+            type="password"
+            name="confirm_password"
+            value={confirmPassword}
+            onChange={handleConfirmPasswordChange}
+            className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          {passwordError && <p className="text-red-600 text-sm mt-1">{passwordError}</p>}
         </div>
 
         {/* Buttons */}
