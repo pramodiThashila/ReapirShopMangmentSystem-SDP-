@@ -19,6 +19,7 @@ const customerJobProductRegister = require("./src/routes/customerJobProductRegis
 const uploadRoutes = require("./src/routes/uploadRoutes")
 const jobProductRoutes = require("./src/routes/jobProductRoutes");
 const advanceInvoiceRoutes = require('./src/routes/advanceInvoiceRoutes');
+const inventoryQuotationRoute = require("./src/routes/inventoryQuotationRoute")
 
 
 
@@ -43,6 +44,7 @@ app.use("/api/customerJobProductRegister", customerJobProductRegister);
 app.use("/api", uploadRoutes);
 app.use("/api/jobProduct", jobProductRoutes);
 app.use('/api/advance-invoice', advanceInvoiceRoutes);
+app.use("/api/inventoryQuotation", inventoryQuotationRoute)
 
 
 const PORT = process.env.PORT || 5000;
