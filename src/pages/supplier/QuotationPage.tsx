@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useLocation } from 'react-router-dom';
 import { DollarSign, Loader2, CheckCircle } from 'lucide-react';
+import axios from 'axios'; // Import axios for API calls
 
 const QuotationPage = () => {
   const location = useLocation();
@@ -51,7 +52,7 @@ const QuotationPage = () => {
     return /^\d+(\.\d{1,2})?$/.test(price);
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     // Validate form
@@ -92,20 +93,47 @@ const QuotationPage = () => {
     setErrors({});
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Prepare data for API
+
+      const supplierData = localStorage.getItem('supplierData');
+      let supplierId: number | null = null;
+
+      if (supplierData) {
+        const parsedData = JSON.parse(supplierData);
+        supplierId = parsedData.supplier_id;
+      }
+
+      const quotationData = {
+        inventoryItem_id: parseInt(location.search.split('id=')[1], 10), // Extract and parse itemId from query params
+        supplier_id: supplierId, // Parse supplierId from localStorage
+        unit_price: parseFloat(formData.quotationPrice),
+        notes: formData.message || null, // Allow notes to be null
+      };
+
+      // API call to store quotation
+      console.log('Submitting quotation:', quotationData);
+      const response = await axios.post('http://localhost:5000/api/inventoryQuotation/submitQuotation', quotationData);
+
+      if (response.status === 201) {
+        setIsSubmitted(true);
+        // Reset form
+        setFormData({
+          productName: '',
+          supplierName: '',
+          quotationPrice: '',
+          email: '',
+          phone: '',
+          message: '',
+        });
+      } else {
+        setErrors({ apiError: 'Failed to submit quotation. Please try again.' });
+      }
+    } catch (error) {
+      setErrors({ apiError: 'An error occurred while submitting the quotation.' });
+    } finally {
       setIsLoading(false);
-      setIsSubmitted(true);
-      // Reset form
-      setFormData({
-        productName: '',
-        supplierName: '',
-        quotationPrice: '',
-        email: '',
-        phone: '',
-        message: '',
-      });
-    }, 1500);
+    }
   };
 
   return (
