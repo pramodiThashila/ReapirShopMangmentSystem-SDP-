@@ -511,4 +511,115 @@ function determineWarrantyStatus(hasWarranty, expiryDate) {
     }
 }
 
+router.get('/invoiceDetails/:jobId', async (req, res) => {
+    const { jobId } = req.params;
+
+    try {
+        // Validate jobId is a number
+        if (isNaN(jobId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid job ID format. Job ID must be a number.'
+            });
+        }
+
+        // Fetch invoice details for the given job ID
+        const [invoiceRows] = await pool.query(`
+            SELECT 
+                i.Invoice_Id,
+                i.job_id,
+                i.TotalCost_for_Parts,
+                i.Labour_Cost,
+                i.Total_Amount,
+                i.warranty,
+                i.warranty_exp_date,
+                i.Is_warranty_claimed,
+                i.Date as invoice_date,
+                i.created_by
+            FROM 
+                invoice i
+            WHERE 
+                i.job_id = ?;
+        `, [jobId]);
+
+        if (invoiceRows.length === 0) {
+            return res.status(404).json({ message: 'Invoice not found for the given job ID' });
+        }
+
+        const invoice = invoiceRows[0];
+
+        // Fetch advance payment details for the given job ID
+        const [advanceRows] = await pool.query(`
+            SELECT 
+                Advance_Amount
+            FROM 
+                advanceinvoice
+            WHERE 
+                job_id = ?;
+        `, [jobId]);
+
+        const advancePayment = advanceRows.length > 0 ? advanceRows[0].Advance_Amount : 0;
+
+        // Fetch job details for the given job ID
+        const [jobRows] = await pool.query(`
+            SELECT 
+                job_id,
+                repair_description,
+                repair_status,
+                receive_date,
+                handover_date
+            FROM 
+                jobs
+            WHERE 
+                job_id = ?;
+        `, [jobId]);
+
+        if (jobRows.length === 0) {
+            return res.status(404).json({ message: 'Job not found for the given job ID' });
+        }
+
+        const job = jobRows[0];
+
+        // Calculate balance due
+        const balanceDue = invoice.Total_Amount - advancePayment;
+
+        // Format warranty expiration date
+        const formattedWarrantyExpDate = invoice.warranty_exp_date
+            ? new Date(invoice.warranty_exp_date).toISOString().split('T')[0]
+            : null;
+
+        // Prepare the response
+        const response = {
+            invoice: {
+                Invoice_Id: invoice.Invoice_Id,
+                job_id: invoice.job_id,
+                TotalCost_for_Parts: invoice.TotalCost_for_Parts,
+                Labour_Cost: invoice.Labour_Cost,
+                Total_Amount: invoice.Total_Amount,
+                warranty: invoice.warranty ? 'Yes' : 'No',
+                warranty_exp_date: formattedWarrantyExpDate,
+                Is_warranty_claimed: invoice.Is_warranty_claimed ? 'Yes' : 'No',
+                invoice_date: new Date(invoice.invoice_date).toISOString().split('T')[0],
+                created_by: invoice.created_by
+            },
+            advance_payment: advancePayment,
+            balance_due: balanceDue,
+            job: {
+                job_id: job.job_id,
+                repair_description: job.repair_description,
+                repair_status: job.repair_status,
+                receive_date: new Date(job.receive_date).toISOString().split('T')[0],
+                handover_date: job.handover_date
+                    ? new Date(job.handover_date).toISOString().split('T')[0]
+                    : null
+            }
+        };
+
+        res.status(200).json(response);
+    } catch (error) {
+        console.error('Error fetching invoice details:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 module.exports = router;

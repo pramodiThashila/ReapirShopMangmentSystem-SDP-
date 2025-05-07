@@ -78,7 +78,8 @@ router.get('/quotations/:inventoryItem_id', async (req, res) => {
                 s.supplier_name, 
                 sq.unit_price, 
                 sq.notes, 
-                sq.quatationR_date 
+                sq.quatationR_date ,
+                sq.qutation_status
             FROM 
                 supplier_quotation sq
             JOIN 
@@ -150,5 +151,60 @@ router.put('/quotations/reject/:quotationId', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
+
+
+// Fetch all quotations by supplier ID
+router.get('/supplier/:supplier_id', async (req, res) => {
+    const { supplier_id } = req.params;
+
+    try {
+        // Validate that supplier_id is a valid integer
+        if (!Number.isInteger(parseInt(supplier_id))) {
+            return res.status(400).json({ message: 'Invalid supplier ID' });
+        }
+
+        // Query to fetch quotations with inventory item details for a specific supplier
+        const fetchQuery = `
+            SELECT 
+                sq.quotation_id, 
+                sq.inventoryItem_id, 
+                i.item_name, 
+                sq.supplier_id, 
+                s.supplier_name, 
+                sq.unit_price, 
+                sq.notes, 
+                sq.quatationR_date,
+                sq.qutation_status
+            FROM 
+                supplier_quotation sq
+            JOIN 
+                suppliers s ON sq.supplier_id = s.supplier_id
+            JOIN 
+                inventory i ON sq.inventoryItem_id = i.inventoryItem_id
+            WHERE 
+                sq.supplier_id = ?
+            ORDER BY
+                sq.quatationR_date DESC
+        `;
+
+        const [rows] = await db.query(fetchQuery, [supplier_id]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'No quotations found for the given supplier ID' });
+        }
+
+        res.status(200).json({ 
+            success: true,
+            count: rows.length,
+            quotations: rows 
+        });
+    } catch (error) {
+        console.error('Error fetching quotations by supplier:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
 
 module.exports = router;
