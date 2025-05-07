@@ -11,6 +11,7 @@ import SupplierHomePage from './pages/SupplierHomePage';
 import SupplierRegister from './pages/supplier/supplierRegister';
 import SupplierLogin from './pages/supplier/SupplierLogin';
 import SupplierProfile from './pages/supplier/SupplierProfile';
+import QuotationListPage from './pages/supplier/QuotationListPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
         <Route path="supplier/register" element={<SupplierRegister />} />
         <Route path="supplier/login" element={<SupplierLogin />} />
         <Route path="supplier/profile" element={<SupplierProfile />} />
+        <Route path="/supplier/quotations" element={<QuotationListPage />} />
         
         {/* 404 Page */}
         <Route path="*" element={<NotFoundPage />} />

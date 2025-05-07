@@ -119,13 +119,13 @@ const Header = ({ isScrolled }: HeaderProps) => {
                         to="/supplier/profile" 
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        Profile
+                        Settings
                       </Link>
                       <Link 
-                        to="/supplier/settings" 
+                        to="/supplier/quotations" 
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        Settings
+                        dashboard
                       </Link>
                       <button 
                         onClick={handleLogout}
