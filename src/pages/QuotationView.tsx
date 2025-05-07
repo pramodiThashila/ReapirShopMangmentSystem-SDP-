@@ -12,6 +12,7 @@ interface Quotation {
   unit_price: number;
   notes: string;
   quatationR_date: string;
+  qutation_status: string;
 }
 
 const QuotationView = () => {
@@ -37,6 +38,9 @@ const QuotationView = () => {
         setLoading(true);
         const response = await axios.get(`http://localhost:5000/api/inventoryQuotation/quotations/${inventoryItem_id}`);
         setQuotations(response.data.quotations);
+        console.log("API Response:", response.data);
+
+        
         
         // Set item name from the first quotation if available
         if (response.data.quotations.length > 0) {
@@ -69,15 +73,20 @@ const QuotationView = () => {
   };
 
   // Handle successful approval
-  const handleApprovalSuccess = () => {
+  const handleApprovalSuccess = async () => {
     setMessage({
       text: 'Quotation approved successfully!',
       type: 'success'
     });
     
-    // Update the quotations list by removing the approved quotation
-    if (quotationToApprove) {
-      setQuotations(prev => prev.filter(q => q.quotation_id !== quotationToApprove.quotation_id));
+    // Refresh quotations from the database to get updated status
+    if (inventoryItem_id) {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/inventoryQuotation/quotations/${inventoryItem_id}`);
+        setQuotations(response.data.quotations);
+      } catch (err) {
+        console.error('Error refreshing quotations:', err);
+      }
     }
     
     // Close the form
@@ -103,9 +112,9 @@ const QuotationView = () => {
         type: 'success'
       });
       
-      // Update the quotation list after rejection
-      const updatedQuotations = quotations.filter(q => q.quotation_id !== quotationToReject);
-      setQuotations(updatedQuotations);
+      // Refresh quotations from the database to get updated status
+    const response = await axios.get(`http://localhost:5000/api/inventoryQuotation/quotations/${inventoryItem_id}`);
+    setQuotations(response.data.quotations);
       
     } catch (err) {
       console.error('Error rejecting quotation:', err);
@@ -177,6 +186,7 @@ const QuotationView = () => {
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Unit Price</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Date</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Notes</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
                   <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Actions</th>
                 </tr>
               </thead>
@@ -194,21 +204,44 @@ const QuotationView = () => {
                     <td className="px-4 py-4 text-sm text-gray-700 max-w-xs truncate">
                       {quotation.notes || 'No notes provided'}
                     </td>
+                    <td className="px-4 py-4 text-sm">
+                      {quotation.qutation_status === 'approved' && (
+                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                          Approved
+                        </span>
+                      )}
+                      {quotation.qutation_status === 'rejected' && (
+                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                          Rejected
+                        </span>
+                      )}
+                      {quotation.qutation_status === 'pending' && (
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                          Pending
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-4 text-sm text-center">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => openApprovalForm(quotation)}
-                          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => confirmReject(quotation.quotation_id)}
-                          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                        >
-                          Reject
-                        </button>
-                      </div>
+                      {quotation.qutation_status === 'pending' ? (
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => openApprovalForm(quotation)}
+                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => confirmReject(quotation.quotation_id)}
+                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-gray-500 text-xs italic">
+                          {quotation.qutation_status === 'approved' ? 'Quotation approved' : 'Quotation rejected'}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

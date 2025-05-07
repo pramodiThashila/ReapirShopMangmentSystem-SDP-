@@ -49,6 +49,7 @@ const menuItems = [
       {path: '/inventory-purchases', label: 'View Inventory Purchases'},
       { path: '/inventoryItem/add', label: 'Add New Inventory Item' },
       { path: '/inventoryItem/batch/add', label: 'Add New Batch' },
+      { path: '/inventory-orders', label: 'view inventory orders' },
     ],
   },
   { path: '/invoices', icon: FileText, label: 'Invoice', subItems: [

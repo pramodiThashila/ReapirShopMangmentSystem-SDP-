@@ -29,6 +29,7 @@ import WarrantyEligibleJobs from './pages/WarrantyEligibleJobs';
 import RegisterWarrantyJob from './pages/RegisterWarrantyJob';
 import CustomerFeedback from './pages/CustomerFeedback';
 import QuotationView from './pages/QuotationView';
+import OrdersView from './pages/OrdersView';
 
 
 
@@ -78,6 +79,7 @@ function App() {
                        <Route path="/jobs/register-warranty/:id" element={<RegisterWarrantyJob />} />
                        <Route path="/customer-feedback" element={<CustomerFeedback />} />
                        <Route path="/restock/:inventoryItem_id" element={<QuotationView />} />
+                       <Route path="/inventory-orders" element={<OrdersView />} />
                        
 
                     </Routes>

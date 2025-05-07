@@ -55,7 +55,7 @@ const InvoiceList: React.FC = () => {
       try {
         setLoading(true);
         const response = await axios.get('http://localhost:5000/api/invoice/all');
-        
+
         // Process data to ensure proper types
         const processedInvoices = response.data.invoices.map((inv: any) => ({
           ...inv,
@@ -66,7 +66,7 @@ const InvoiceList: React.FC = () => {
           advance_payment: parseFloat(inv.advance_payment || 0) || 0,
           balance_due: parseFloat(inv.balance_due || 0) || 0
         }));
-        
+
         setInvoices(processedInvoices);
       } catch (err: any) {
         console.error("Error fetching invoices:", err);
@@ -94,8 +94,8 @@ const InvoiceList: React.FC = () => {
   // Get sort icon
   const getSortIcon = (field: keyof Invoice) => {
     if (field !== sortField) return <FaSort className="inline ml-1" />;
-    return sortDirection === 'asc' ? 
-      <FaSortUp className="inline ml-1 text-blue-600" /> : 
+    return sortDirection === 'asc' ?
+      <FaSortUp className="inline ml-1 text-blue-600" /> :
       <FaSortDown className="inline ml-1 text-blue-600" />;
   };
 
@@ -119,14 +119,14 @@ const InvoiceList: React.FC = () => {
       // Handle different field types
       if (sortField === 'Total_Amount' || sortField === 'balance_due') {
         // Sort numbers
-        return sortDirection === 'asc' 
+        return sortDirection === 'asc'
           ? a[sortField] - b[sortField]
           : b[sortField] - a[sortField];
       } else if (sortField === 'invoice_date') {
         // Sort dates
         const dateA = new Date(a[sortField]);
         const dateB = new Date(b[sortField]);
-        return sortDirection === 'asc' 
+        return sortDirection === 'asc'
           ? dateA.getTime() - dateB.getTime()
           : dateB.getTime() - dateA.getTime();
       } else {
@@ -156,10 +156,10 @@ const InvoiceList: React.FC = () => {
   const exportToCSV = () => {
     // Headers
     const headers = [
-      'Invoice ID', 'Date', 'Customer', 'Product', 'Parts Cost', 
+      'Invoice ID', 'Date', 'Customer', 'Product', 'Parts Cost',
       'Labour Cost', 'Advance Payment', 'Total Amount', 'Balance', 'Status', 'Warranty'
     ];
-    
+
     // Convert invoices to CSV rows
     const rows = filteredAndSortedInvoices.map(invoice => [
       invoice.Invoice_Id,
@@ -174,13 +174,13 @@ const InvoiceList: React.FC = () => {
       invoice.repair_status,
       invoice.warranty_status
     ]);
-    
+
     // Combine headers and rows
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.join(','))
     ].join('\n');
-    
+
     // Create download link
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -209,7 +209,7 @@ const InvoiceList: React.FC = () => {
       <div className="max-w-7xl mx-auto mt-8 p-6 bg-red-50 border border-red-200 rounded-lg">
         <h2 className="text-xl font-bold text-red-700 mb-4">Error</h2>
         <p className="text-red-600">{error}</p>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
@@ -241,7 +241,7 @@ const InvoiceList: React.FC = () => {
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full"
             />
           </div>
-          <button 
+          <button
             onClick={exportToCSV}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
@@ -256,7 +256,7 @@ const InvoiceList: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th 
+                <th
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('Invoice_Id')}
                 >
@@ -264,7 +264,15 @@ const InvoiceList: React.FC = () => {
                     Invoice # {getSortIcon('Invoice_Id')}
                   </span>
                 </th>
-                <th 
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('job_id')}
+                >
+                  <span className="flex items-center">
+                    Job # {getSortIcon('job_id')}
+                  </span>
+                </th>
+                <th
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('invoice_date')}
                 >
@@ -272,7 +280,7 @@ const InvoiceList: React.FC = () => {
                     Date {getSortIcon('invoice_date')}
                   </span>
                 </th>
-                <th 
+                <th
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('customer_name')}
                 >
@@ -280,7 +288,7 @@ const InvoiceList: React.FC = () => {
                     Customer {getSortIcon('customer_name')}
                   </span>
                 </th>
-                <th 
+                <th
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('product_name')}
                 >
@@ -288,7 +296,7 @@ const InvoiceList: React.FC = () => {
                     Product {getSortIcon('product_name')}
                   </span>
                 </th>
-                <th 
+                <th
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('Total_Amount')}
                 >
@@ -296,23 +304,23 @@ const InvoiceList: React.FC = () => {
                     Amount {getSortIcon('Total_Amount')}
                   </span>
                 </th>
-                <th 
+                {/* <th 
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('balance_due')}
                 >
                   <span className="flex items-center">
                     Balance {getSortIcon('balance_due')}
                   </span>
-                </th>
-                <th 
+                </th> */}
+                {/* <th 
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('repair_status')}
                 >
                   <span className="flex items-center">
                     Status {getSortIcon('repair_status')}
                   </span>
-                </th>
-                <th 
+                </th> */}
+                <th
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('warranty_status')}
                 >
@@ -332,6 +340,9 @@ const InvoiceList: React.FC = () => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       #{invoice.Invoice_Id}
                     </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      #{invoice.job_id}
+                    </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
                       {invoice.invoice_date}
                     </td>
@@ -344,16 +355,16 @@ const InvoiceList: React.FC = () => {
                       <div className="text-xs text-gray-500">{invoice.model}</div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      ${formatCurrency(invoice.Total_Amount)}
+                      Rs.{formatCurrency(invoice.Total_Amount)}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm">
+                    {/* <td className="px-4 py-4 whitespace-nowrap text-sm">
                       {Number(invoice.balance_due) > 0 ? (
-                        <span className="text-red-600 font-medium">${formatCurrency(invoice.balance_due)}</span>
+                        <span className="text-red-600 font-medium">Rs.{formatCurrency(invoice.balance_due)}</span>
                       ) : (
                         <span className="text-green-600 font-medium">Paid</span>
                       )}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
+                    </td> */}
+                    {/* <td className="px-4 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         invoice.repair_status === 'Completed' 
                           ? 'bg-green-100 text-green-800' 
@@ -363,26 +374,25 @@ const InvoiceList: React.FC = () => {
                       }`}>
                         {invoice.repair_status}
                       </span>
-                    </td>
+                    </td> */}
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        invoice.warranty_status === 'Active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : invoice.warranty_status === 'Expired'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${invoice.warranty_status === 'Active'
+                        ? 'bg-green-100 text-green-800'
+                        : invoice.warranty_status === 'Expired'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-gray-100 text-gray-800'
+                        }`}>
                         {invoice.warranty_status}
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link 
+                      <Link
                         to={`/invoice/${invoice.Invoice_Id}`}
                         className="text-blue-600 hover:text-blue-900 mr-4"
                       >
                         View
                       </Link>
-                      <Link 
+                      <Link
                         to={`/invoice/print/${invoice.Invoice_Id}`}
                         className="text-green-600 hover:text-green-900"
                       >
@@ -427,11 +437,10 @@ const InvoiceList: React.FC = () => {
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className={`px-3 py-1 border rounded ${
-                currentPage === 1 
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                  : 'bg-white text-blue-600 hover:bg-blue-50'
-              }`}
+              className={`px-3 py-1 border rounded ${currentPage === 1
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-white text-blue-600 hover:bg-blue-50'
+                }`}
             >
               Previous
             </button>
@@ -439,11 +448,10 @@ const InvoiceList: React.FC = () => {
               <button
                 key={index}
                 onClick={() => setCurrentPage(index + 1)}
-                className={`px-3 py-1 border rounded ${
-                  currentPage === index + 1
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-blue-600 hover:bg-blue-50'
-                }`}
+                className={`px-3 py-1 border rounded ${currentPage === index + 1
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-blue-600 hover:bg-blue-50'
+                  }`}
               >
                 {index + 1}
               </button>
@@ -451,11 +459,10 @@ const InvoiceList: React.FC = () => {
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className={`px-3 py-1 border rounded ${
-                currentPage === totalPages
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-white text-blue-600 hover:bg-blue-50'
-              }`}
+              className={`px-3 py-1 border rounded ${currentPage === totalPages
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-white text-blue-600 hover:bg-blue-50'
+                }`}
             >
               Next
             </button>

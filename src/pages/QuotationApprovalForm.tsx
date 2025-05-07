@@ -66,13 +66,13 @@ const QuotationApprovalForm: React.FC<QuotationApprovalFormProps> = ({ quotation
       setError(null);
 
       // Send the form data along with quotation details to the backend
-      await axios.post('http://localhost:5000/api/inventoryQuotation/approve', {
+      await axios.post('http://localhost:5000/api/inventoryOrder/create', {
         quotation_id: quotation.quotation_id,
         supplier_id: quotation.supplier_id,
         inventoryItem_id: quotation.inventoryItem_id,
         quantity: parseInt(formData.quantity),
-        needByDate: formData.needByDate,
-        specialNotes: formData.specialNotes,
+        needBeforeDate: formData.needByDate,
+        notes: formData.specialNotes,
         unit_price: quotation.unit_price
       });
 
