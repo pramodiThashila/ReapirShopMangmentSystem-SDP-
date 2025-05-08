@@ -563,15 +563,17 @@ router.get('/invoiceDetails/:jobId', async (req, res) => {
         // Fetch job details for the given job ID
         const [jobRows] = await pool.query(`
             SELECT 
-                job_id,
-                repair_description,
-                repair_status,
-                receive_date,
-                handover_date
+                j.job_id,
+                j.repair_description,
+                j.repair_status,
+                j.receive_date,
+                j.handover_date,
+                j.customer_id,
+                j.product_id
             FROM 
-                jobs
+                jobs j
             WHERE 
-                job_id = ?;
+                j.job_id = ?;
         `, [jobId]);
 
         if (jobRows.length === 0) {
@@ -579,6 +581,54 @@ router.get('/invoiceDetails/:jobId', async (req, res) => {
         }
 
         const job = jobRows[0];
+
+        // Fetch customer details
+        const [customerRows] = await pool.query(`
+            SELECT 
+                c.customer_id,
+                CONCAT(c.firstName, ' ', c.lastName) AS customer_name,
+                c.email,
+                c.type
+            FROM 
+                customers c
+            WHERE 
+                c.customer_id = ?;
+        `, [job.customer_id]);
+
+        if (customerRows.length === 0) {
+            return res.status(404).json({ message: 'Customer not found for the given job ID' });
+        }
+
+        const customer = customerRows[0];
+
+        // Fetch customer phone numbers
+        const [phoneNumbers] = await pool.query(`
+            SELECT 
+                phone_number
+            FROM 
+                telephones_customer
+            WHERE 
+                customer_id = ?;
+        `, [job.customer_id]);
+
+        // Fetch product details
+        const [productRows] = await pool.query(`
+            SELECT 
+                p.product_id,
+                p.product_name,
+                p.model,
+                p.model_no
+            FROM 
+                products p
+            WHERE 
+                p.product_id = ?;
+        `, [job.product_id]);
+
+        if (productRows.length === 0) {
+            return res.status(404).json({ message: 'Product not found for the given job ID' });
+        }
+
+        const product = productRows[0];
 
         // Calculate balance due
         const balanceDue = invoice.Total_Amount - advancePayment;
@@ -612,6 +662,19 @@ router.get('/invoiceDetails/:jobId', async (req, res) => {
                 handover_date: job.handover_date
                     ? new Date(job.handover_date).toISOString().split('T')[0]
                     : null
+            },
+            customer: {
+                customer_id: customer.customer_id,
+                customer_name: customer.customer_name,
+                email: customer.email,
+                type: customer.type,
+                phone_numbers: phoneNumbers.map(p => p.phone_number)
+            },
+            product: {
+                product_id: product.product_id,
+                product_name: product.product_name,
+                model: product.model,
+                model_no: product.model_no
             }
         };
 

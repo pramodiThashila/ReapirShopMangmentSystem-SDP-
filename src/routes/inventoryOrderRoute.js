@@ -263,4 +263,109 @@ router.put('/status/:orderId', [
     }
 });
 
+router.get('/orderDetails/:orderId', async (req, res) => {
+    const { orderId } = req.params;
+
+    try {
+        // Fetch order details by order ID
+        const fetchQuery = `
+            SELECT 
+                io.order_id,
+                io.inventoryItem_id,
+                i.item_name,
+                io.supplier_id,
+                s.supplier_name,
+                io.quotation_id,
+                io.needBeforeDate,
+                io.unit_price,
+                io.quantity,
+                io.order_status,
+                io.notes
+            FROM 
+                inventory_order io
+            JOIN 
+                inventory i ON io.inventoryItem_id = i.inventoryItem_id
+            JOIN 
+                suppliers s ON io.supplier_id = s.supplier_id
+            WHERE 
+                io.order_id = ?;
+        `;
+
+        const [rows] = await db.query(fetchQuery, [orderId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Order not found for the given order ID' });
+        }
+
+        const orderDetails = rows[0];
+
+        res.status(200).json({
+            order_id: orderDetails.order_id,
+            inventoryItem_id: orderDetails.inventoryItem_id,
+            item_name: orderDetails.item_name,
+            supplier_id: orderDetails.supplier_id,
+            supplier_name: orderDetails.supplier_name,
+            quotation_id: orderDetails.quotation_id,
+            needBeforeDate: orderDetails.needBeforeDate,
+            unit_price: orderDetails.unit_price,
+            quantity: orderDetails.quantity,
+            order_status: orderDetails.order_status,
+            notes: orderDetails.notes
+        });
+    } catch (error) {
+        console.error('Error fetching order details:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// PUT endpoint to mark an order as complete
+router.put('/orders/complete/:orderId', async (req, res) => {
+    const { orderId } = req.params;
+    
+    try {
+      // Input validation
+      if (!orderId || isNaN(parseInt(orderId))) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid order ID provided' 
+        });
+      }
+      
+      // Update the order status to 'completed'
+      const [result] = await db.query(
+        `UPDATE inventory_order
+         SET order_status = 'received' 
+         WHERE order_id = ?`,
+        [orderId]
+      );
+      
+      // Check if the update was successful
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Order not found'
+        });
+      }
+      
+    //   // Log the completion
+    //   await pool.query(
+    //     `INSERT INTO order_status_logs (order_id, status, updated_at, updated_by) 
+    //      VALUES (?, 'completed', NOW(), ?)`,
+    //     [orderId, req.user?.username || 'system']
+    //   );
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Order marked as completed successfully'
+      });
+      
+    } catch (error) {
+      console.error('Error completing order:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'An error occurred while completing the order'
+      });
+    }
+  });
+
 module.exports = router;
