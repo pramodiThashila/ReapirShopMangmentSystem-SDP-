@@ -284,7 +284,7 @@ const FinalInvoice = () => {
         showAlert(response.data?.message || 'Invoice created successfully', 'success');
         
         setTimeout(() => {
-          navigate(`/invoice/${createdInvoiceId}`);
+          navigate(`/invoice/${invoice.jobId}`);
         }, 2000);
       }
     } catch (error: any) {

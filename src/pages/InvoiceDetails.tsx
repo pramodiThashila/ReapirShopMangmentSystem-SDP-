@@ -12,6 +12,7 @@ interface Invoice {
   customer_id: number;
   customer_name: string;
   customer_email: string;
+  customer_phone: string;
   employee_id: string;
   employee_name: string;
   employee_role: string;
@@ -43,7 +44,7 @@ interface InventoryItem {
 const InvoiceDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [invoice, setInvoice] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [usedItems, setUsedItems] = useState<InventoryItem[]>([]);
@@ -79,24 +80,33 @@ const InvoiceDetails: React.FC = () => {
     const fetchInvoiceDetails = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/api/invoice/all');
+        // Use the updated API endpoint
+        const response = await axios.get(`http://localhost:5000/api/invoice/invoiceDetails/${id}`);
         
-        const foundInvoice = response.data.invoices.find(
-          (inv: any) => inv.Invoice_Id === parseInt(id || '0')
-        );
-        
-        if (foundInvoice) {
+        if (response.data && response.data.invoice) {
+          const { invoice, advance_payment, balance_due, job, customer, product } = response.data;
+
+          // Process the invoice data
           const processedInvoice = {
-            ...foundInvoice,
-            Total_Amount: parseFloat(foundInvoice.Total_Amount) || 0,
-            TotalCost_for_Parts: parseFloat(foundInvoice.TotalCost_for_Parts) || 0,
-            Labour_Cost: parseFloat(foundInvoice.Labour_Cost) || 0,
-            advance_payment: parseFloat(foundInvoice.advance_payment || 0) || 0,
-            balance_due: parseFloat(foundInvoice.balance_due || 0) || 0
+            ...invoice,
+            advance_payment: parseFloat(advance_payment) || 0,
+            balance_due: parseFloat(balance_due) || 0,
+            repair_description: job.repair_description,
+            repair_status: job.repair_status,
+            receive_date: job.receive_date,
+            handover_date: job.handover_date,
+            customer_name: customer.customer_name,
+            customer_email: customer.email,
+            customer_phone: customer.phone_numbers.join(', '),
+            product_name: product.product_name,
+            model: product.model,
+            model_no: product.model_no,
+            product_id: product.product_id
           };
-          
+
+          console.log('Processed invoice data:', processedInvoice);
           setInvoice(processedInvoice);
-          
+
           // Fetch the used inventory items
           if (processedInvoice.job_id) {
             fetchUsedInventory(processedInvoice.job_id);
@@ -105,7 +115,7 @@ const InvoiceDetails: React.FC = () => {
           setError('Invoice not found');
         }
       } catch (err: any) {
-        console.error('Error details:', err);
+        console.error('Error fetching invoice details:', err);
         setError(err.response?.data?.error || 'Failed to fetch invoice details');
       } finally {
         setLoading(false);
@@ -253,15 +263,13 @@ const InvoiceDetails: React.FC = () => {
               </div>
             </div>
             
+            {/* Customer Information */}
             <div>
               <h2 className="text-lg font-semibold text-gray-700 mb-2">Customer Information</h2>
               <div className="bg-gray-50 p-4 rounded">
                 <p className="font-medium text-gray-800">{invoice.customer_name}</p>
                 <p className="text-gray-600">{invoice.customer_email}</p>
-                <p className="text-gray-600">Customer ID: {invoice.customer_id}</p>
-                <p className="text-gray-600 mt-1">
-                  <span className="font-medium">Technician:</span> {invoice.employee_name} ({invoice.employee_role})
-                </p>
+                <p className="text-gray-600">Phone: {invoice.customer_phone}</p>
               </div>
             </div>
           </div>
@@ -342,19 +350,23 @@ const InvoiceDetails: React.FC = () => {
                     <td className="px-6 py-3 text-sm text-gray-700">Labour Cost</td>
                     <td className="px-6 py-3 text-sm text-gray-700 text-right">Rs {formatCurrency(invoice.Labour_Cost)}</td>
                   </tr>
-                  {invoice.AdvanceInvoice_Id && (
+                  <tr className="bg-gray-50">
+                    <td className="px-6 py-3 text-sm font-medium text-gray-800">Sub Total</td>
+                    <td className="px-6 py-3 text-sm font-medium text-gray-800 text-right">
+                      Rs {formatCurrency(invoice.Total_Amount)}
+                    </td>
+                  </tr>
+                  {invoice.advance_payment > 0 && (
                     <tr>
                       <td className="px-6 py-3 text-sm text-gray-700">Advance Payment</td>
                       <td className="px-6 py-3 text-sm text-green-600 text-right">-Rs {formatCurrency(invoice.advance_payment)}</td>
                     </tr>
                   )}
-                  <tr className="bg-gray-50">
-                    <td className="px-6 py-3 text-sm font-medium text-gray-800">Total Amount</td>
-                    <td className="px-6 py-3 text-sm font-medium text-gray-800 text-right">Rs {formatCurrency(invoice.Total_Amount)}</td>
-                  </tr>
                   <tr className="bg-gray-100">
-                    <td className="px-6 py-3 text-sm font-medium text-gray-800">Balance Due</td>
-                    <td className="px-6 py-3 text-sm font-medium text-gray-800 text-right">Rs {formatCurrency(invoice.balance_due)}</td>
+                    <td className="px-6 py-3 text-sm font-bold text-gray-800">Balance Due</td>
+                    <td className="px-6 py-3 text-sm font-bold text-gray-800 text-right">
+                      Rs {formatCurrency(invoice.balance_due)}
+                    </td>
                   </tr>
                 </tbody>
               </table>

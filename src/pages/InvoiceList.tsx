@@ -387,13 +387,13 @@ const InvoiceList: React.FC = () => {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Link
-                        to={`/invoice/${invoice.Invoice_Id}`}
+                        to={`/invoice/${invoice.job_id}`}
                         className="text-blue-600 hover:text-blue-900 mr-4"
                       >
                         View
                       </Link>
                       <Link
-                        to={`/invoice/print/${invoice.Invoice_Id}`}
+                        to={`/invoice/print/${invoice.job_id}`}
                         className="text-green-600 hover:text-green-900"
                       >
                         Print

@@ -1,13 +1,45 @@
-import React from 'react';
-import { Bell, User } from 'lucide-react';
-import { useUser } from '../context/UserContext'; // Import the UserContext
+import React, { useState } from 'react';
+import { Bell, User, X, Edit, LogOut } from 'lucide-react';
+import { useUser } from '../context/UserContext';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import UserProfileDialog from './UserProfileDialog'; // Adjust the path as needed
+
+
 
 interface NavbarProps {
   onToggleSidebar: () => void;
 }
 
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
-  const { user } = useUser(); // Access the logged-in user details
+  const { user } = useUser();
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [employeeData, setEmployeeData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  
+  const handleUserClick = async () => {
+    if (!user?.employee_id) return;
+    
+    try {
+      setIsLoading(true);
+      setError('');
+      const response = await axios.get(`http://localhost:5000/api/employees/${user.employee_id}`);
+      setEmployeeData(response.data);
+      setShowUserDialog(true);
+    } catch (err) {
+      console.error('Error fetching employee details:', err);
+      setError('Failed to load employee details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditAccount = () => {
+    setShowUserDialog(false);
+    navigate('/edit-account');
+  };
 
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-3">
@@ -34,7 +66,10 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           <button className="text-gray-500 hover:text-gray-600">
             <Bell size={20} />
           </button>
-          <div className="flex items-center gap-2">
+          <div 
+            className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 rounded-full py-1 px-2 transition-colors"
+            onClick={handleUserClick}
+          >
             {/* Profile Picture with First Letter */}
             <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">
               {user?.username?.charAt(0).toUpperCase() || <User size={20} />}
@@ -46,6 +81,15 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           </div>
         </div>
       </div>
+
+      {/* User Profile Dialog */}
+      {showUserDialog && employeeData && (
+        <UserProfileDialog 
+          employee={employeeData} 
+          onClose={() => setShowUserDialog(false)}
+          onEdit={handleEditAccount}
+        />
+      )}
     </div>
   );
 }

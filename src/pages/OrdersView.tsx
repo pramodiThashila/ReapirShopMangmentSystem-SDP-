@@ -24,6 +24,7 @@ const OrdersView = () => {
     text: '', 
     type: null 
   });
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Fetch all orders
@@ -62,6 +63,18 @@ const OrdersView = () => {
     return (unitPrice * quantity).toFixed(2);
   };
 
+  // Handle row selection
+  const handleRowClick = (orderId: string) => {
+    setSelectedOrderId(orderId === selectedOrderId ? null : orderId);
+  };
+
+  // Navigate to inventory batch form with selected order ID
+  const handleProceedToInventory = () => {
+    if (selectedOrderId) {
+      navigate(`/inventoryItem/batch/add?orderId=${selectedOrderId}`);
+    }
+  };
+
   // Render status badge based on order status
   const renderStatusBadge = (status: string) => {
     switch(status.toLowerCase()) {
@@ -77,16 +90,16 @@ const OrdersView = () => {
             Confirmed
           </span>
         );
-      case 'shipped':
+      case 'Shipped':
         return (
           <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
             Shipped
           </span>
         );
-      case 'delivered':
+      case 'received':
         return (
           <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-            Delivered
+             Order Received
           </span>
         );
       case 'cancelled':
@@ -107,14 +120,45 @@ const OrdersView = () => {
   return (
     <div className="container mx-auto mt-8 px-4">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Placed Orders For Inventory </h2>
-        <div>
+        <h2 className="text-2xl font-bold"> Orders For Inventory </h2>
+        <div className="flex gap-3">
+          <button
+            onClick={handleProceedToInventory}
+            disabled={!selectedOrderId}
+            className={`px-4 py-2 rounded-lg flex items-center ${
+              selectedOrderId 
+                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                : 'bg-blue-300 text-white cursor-not-allowed'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
+            </svg>
+            Process Selected Order to Inventory
+          </button>
+          
           <button
             onClick={() => navigate(-1)}
             className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
           >
             Back
           </button>
+        </div>
+      </div>
+
+      {/* Instructions for user */}
+      <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-blue-700">
+              Click on a row to select an order. Then click "Process Selected Order to Inventory" to add inventory batch details.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -148,13 +192,18 @@ const OrdersView = () => {
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Unit Price</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Qty</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Total</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
-                  
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Supplier Confirmation</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {orders.map((order) => (
-                  <tr key={order.order_id} className="hover:bg-gray-50">
+                  <tr 
+                    key={order.order_id} 
+                    className={`hover:bg-gray-50 cursor-pointer ${
+                      selectedOrderId === order.order_id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                    }`}
+                    onClick={() => handleRowClick(order.order_id)}
+                  >
                     <td className="px-4 py-4 text-sm text-gray-700">{order.order_id}</td>
                     <td className="px-4 py-4 text-sm text-gray-700">
                       <div className="font-medium">{order.item_name}</div>
@@ -174,31 +223,6 @@ const OrdersView = () => {
                     <td className="px-4 py-4 text-sm">
                       {renderStatusBadge(order.order_status)}
                     </td>
-                    {/* <td className="px-4 py-4 text-sm text-center">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => navigate(`/orders/${order.order_id}`)}
-                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                          title="View details"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </button>
-                        {order.order_status.toLowerCase() === 'pending' && (
-                          <button
-                            onClick={() => navigate(`/orders/edit/${order.order_id}`)}
-                            className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                            title="Edit order"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    </td> */}
                   </tr>
                 ))}
               </tbody>

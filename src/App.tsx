@@ -18,10 +18,10 @@ import { UserProvider } from './context/UserContext';
 import MyJobs from './pages/MyJobs';
 import AdvancePaymentInvoice from './pages/AdvancePaymentInvoice';
 import CustomerView from './pages/CustomerView';
- import InvoiceDetails from './pages/InvoiceDetails';
+import InvoiceDetails from './pages/InvoiceDetails';
 import InvoiceList from './pages/InvoiceList';
 import FinalInvoice from './pages/FinalInvoice';
- import AdvanceInvoiceDetails from './pages/AdvanceInvoiceDetails';
+import AdvanceInvoiceDetails from './pages/AdvanceInvoiceDetails';
 import AdvanceInvoiceList from './pages/AdvanceInvoiceList';
 import InventoryPurchases from './pages/InventoryPurchasesView';
 import UsedInventoryPage from './pages/UsedInventoryPage';
@@ -30,29 +30,28 @@ import RegisterWarrantyJob from './pages/RegisterWarrantyJob';
 import CustomerFeedback from './pages/CustomerFeedback';
 import QuotationView from './pages/QuotationView';
 import OrdersView from './pages/OrdersView';
-
-
+import EditAccount from './pages/EditAccount';
 
 function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
-    <UserProvider> {/* Wrap the entire app with UserProvider */}
+    <UserProvider>
       <Router>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route
             path="/*"
             element={
-              <div className="flex min-h-screen bg-gray-100">
+              <div className="flex h-screen overflow-hidden bg-gray-100">
                 <Sidebar isCollapsed={isSidebarCollapsed} />
-                <div className="flex-1">
+                <div className={`flex-1 flex flex-col ${isSidebarCollapsed ? 'ml-0' : 'ml-64'} transition-all duration-300`}>
                   <Navbar
                     onToggleSidebar={() =>
                       setIsSidebarCollapsed(!isSidebarCollapsed)
                     }
                   />
-                  <main>
+                  <main className="flex-1 overflow-y-auto p-6">
                     <Routes>
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/employees/register" element={<EmployeeRegister />} />
@@ -69,19 +68,18 @@ function App() {
                       <Route path="/jobs/myJobs" element={<MyJobs />} />
                       <Route path="/advance-payment-invoice" element={<AdvancePaymentInvoice />} />
                       <Route path="customer/view" element={<CustomerView/>} />
-                       <Route path="/invoice/:id" element={<InvoiceDetails />} /> 
+                      <Route path="/invoice/:id" element={<InvoiceDetails />} /> 
                       <Route path="/invoices" element={<InvoiceList />} />
                       <Route path="/advance-invoices" element={<AdvanceInvoiceList />} />
-                       <Route path="/advance-invoice/:id" element={<AdvanceInvoiceDetails />} /> 
-                       <Route path="/inventory-purchases" element={<InventoryPurchases />} />
-                       <Route path="/jobs/:jobId/used-inventory" element={<UsedInventoryPage />} />
-                       <Route path="/warranty-eligible-jobs" element={<WarrantyEligibleJobs />} />
-                       <Route path="/jobs/register-warranty/:id" element={<RegisterWarrantyJob />} />
-                       <Route path="/customer-feedback" element={<CustomerFeedback />} />
-                       <Route path="/restock/:inventoryItem_id" element={<QuotationView />} />
-                       <Route path="/inventory-orders" element={<OrdersView />} />
-                       
-
+                      <Route path="/advance-invoice/:id" element={<AdvanceInvoiceDetails />} /> 
+                      <Route path="/inventory-purchases" element={<InventoryPurchases />} />
+                      <Route path="/jobs/:jobId/used-inventory" element={<UsedInventoryPage />} />
+                      <Route path="/warranty-eligible-jobs" element={<WarrantyEligibleJobs />} />
+                      <Route path="/jobs/register-warranty/:id" element={<RegisterWarrantyJob />} />
+                      <Route path="/customer-feedback" element={<CustomerFeedback />} />
+                      <Route path="/restock/:inventoryItem_id" element={<QuotationView />} />
+                      <Route path="/inventory-orders" element={<OrdersView />} />
+                      <Route path="/edit-account" element={<EditAccount />} />
                     </Routes>
                   </main>
                 </div>

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 
 const JobDetails = () => {
+  // Keep all existing state variables
   const [jobs, setJobs] = useState<{
     job_id: string;
     repair_description: string;
@@ -21,7 +22,6 @@ const JobDetails = () => {
     employee_name?: string;
     repair_status: string;
   } | null>(null);
- // const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<{ inventoryItem_id: string; item_name: string }[]>([]);
@@ -29,7 +29,7 @@ const JobDetails = () => {
   const [selectedInventory, setSelectedInventory] = useState('');
   const [selectedBatch, setSelectedBatch] = useState('');
   const [quantityUsed, setQuantityUsed] = useState('');
-  const [errorMessages, setErrorMessages] = useState<string[]>([]); // State for error messages
+  const [errorMessages, setErrorMessages] = useState<string[]>([]); 
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [alertMessage, setAlertMessage] = useState<string>("");
@@ -194,7 +194,8 @@ const JobDetails = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
+    // Main container with fixed height to prevent page scrolling
+    <div className="max-w-6xl mx-auto h-[calc(100vh-100px)] mt-4 p-6 bg-gray-100 rounded-lg shadow-md flex flex-col">
       {/* Alert message display */}
       {showAlert && (
         <div className={`mb-4 p-4 rounded-lg ${alertType === "success" ? "bg-green-100 text-green-800" :
@@ -206,37 +207,38 @@ const JobDetails = () => {
         </div>
       )}
 
-      {/* Job Table  */}
-      <div className="container mx-auto mt-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">JOB Details</h1>
+      {/* Job Table - Fixed Header Section */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Fixed header and action buttons */}
+        <div className="flex-shrink-0">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+            <h1 className="text-2xl font-bold">JOB Details</h1>
 
-          <div className="flex space-x-3">
-            <button
-              onClick={handleAdvanceInvoiceClick}
-              className={`px-4 py-2 text-white rounded-lg shadow-sm flex items-center ${selectedJob ? "bg-blue-500 hover:bg-blue-600" : "bg-blue-300 cursor-not-allowed"
-                } transition-colors`}
-              disabled={!selectedJob}
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-              </svg>
-              Create Advance Invoice
-            </button>
+            <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
+              <button
+                onClick={handleAdvanceInvoiceClick}
+                className={`px-4 py-2 text-white rounded-lg shadow-sm flex items-center ${selectedJob ? "bg-blue-500 hover:bg-blue-600" : "bg-blue-300 cursor-not-allowed"
+                  } transition-colors`}
+                disabled={!selectedJob}
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Create Advance Invoice
+              </button>
 
-            <button
-              onClick={handleInventoryUpdateClick}
-              className={`px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-sm flex items-center ${selectedJob ? "" : "bg-yellow-300 cursor-not-allowed"
-                }`}
-              disabled={!selectedJob}
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-              </svg>
-              Add Used Inventory
-            </button>
-            <div className="flex space-x-3">
-              {/* Other buttons */}
+              <button
+                onClick={handleInventoryUpdateClick}
+                className={`px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-sm flex items-center ${selectedJob ? "" : "bg-yellow-300 cursor-not-allowed"
+                  }`}
+                disabled={!selectedJob}
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Add Used Inventory
+              </button>
+
               <button
                 onClick={handleNavigateToUsedInventory}
                 data-tip={!selectedJob ? 'Please select a job first' : ''}
@@ -263,76 +265,73 @@ const JobDetails = () => {
               <ReactTooltip anchorSelect="[data-tip]" place="top" />
             </div>
           </div>
+
+          {/* Search Bar - fixed position */}
+          <div className="flex justify-end mb-4">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Search by product or employee"
+            />
+          </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="flex justify-end mb-4">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Search by product or employee"
-          />
-        </div>
+        {/* Table container with fixed header and scrollable body */}
+        <div className="flex-1 overflow-hidden border border-gray-200 rounded-lg shadow-md bg-white">
+          {/* Table header - fixed */}
+          <div className="bg-gray-100 shadow-sm">
+            <div className="grid grid-cols-7">
+              <div className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Job ID</div>
+              <div className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Repair Description</div>
+              <div className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Product Name</div>
+              <div className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Product Image</div>
+              <div className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Assigned Employee</div>
+              <div className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Repair Status</div>
+              <div className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Actions</div>
+            </div>
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Job ID</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Repair Description</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Product Name</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Product Image</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Assigned Employee</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Repair Status</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredJobs.map((job) => (
-                <tr
+          {/* Table body - scrollable */}
+          <div className="overflow-y-auto" style={{ height: "calc(100% - 44px)" }}>
+            {filteredJobs.length > 0 ? (
+              filteredJobs.map((job) => (
+                <div
                   key={job.job_id}
                   onClick={() => handleRowClick(job)}
-                  className={`border-t border-gray-200 hover:bg-gray-50 transition-colors ${selectedJob?.job_id === job.job_id ? 'bg-blue-50' : ''
-                    }`}
+                  className={`grid grid-cols-7 border-b border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors ${
+                    selectedJob?.job_id === job.job_id ? 'bg-blue-50' : ''
+                  }`}
                 >
-                  <td className="px-4 py-3 text-sm text-gray-700">{job.job_id}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate">{job.repair_description}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{job.product_name}</td>
-                  <td className="px-4 py-3">
+                  <div className="px-4 py-3 text-sm text-gray-700">{job.job_id}</div>
+                  <div className="px-4 py-3 text-sm text-gray-700 truncate">{job.repair_description}</div>
+                  <div className="px-4 py-3 text-sm text-gray-700">{job.product_name}</div>
+                  <div className="px-4 py-3">
                     <img
                       src={job.product_image}
                       alt="Product"
                       className="w-16 h-16 object-cover rounded-md border border-gray-200 shadow-sm"
                     />
-                  </td>
-                  <td className="px-4 py-3 text-sm text-gray-700">
+                  </div>
+                  <div className="px-4 py-3 text-sm text-gray-700">
                     {job.employee_name ||
                       <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
                         Unassigned
                       </span>
                     }
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${job.repair_status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                        job.repair_status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                          job.repair_status === 'Completed' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                      }`}>
+                  </div>
+                  <div className="px-4 py-3">
+                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                      job.repair_status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                      job.repair_status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                      job.repair_status === 'Completed' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
                       {job.repair_status}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {/*<button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsViewModalOpen(true);
-                      }}
-                      className="px-3 py-1 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors mr-2"
-                    >
-                      View
-                    </button>*/}
+                  </div>
+                  <div className="px-4 py-3 text-center">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -340,57 +339,32 @@ const JobDetails = () => {
                       }}
                       className="px-3 py-1 text-sm text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
                     >
-                      view & Edit
+                      View & Edit
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Empty state  */}
-        {filteredJobs.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-lg shadow border border-gray-200">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-            </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">
-              {searchQuery ? "No matching jobs found" : "No jobs found"}
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {searchQuery ? "Try adjusting your search query." : "No jobs available to display."}
-            </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  {searchQuery ? "No matching jobs found" : "No jobs found"}
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {searchQuery ? "Try adjusting your search query." : "No jobs available to display."}
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
-
-      {/* View Modal */}
-
-      {/*{isViewModalOpen && selectedJob && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
-            <h2 className="text-xl font-bold mb-4">Job Details</h2>
-            <p><strong>Job ID:</strong> {selectedJob.job_id}</p>
-            <p><strong>Repair Description:</strong> {selectedJob.repair_description}</p>
-            <p><strong>Product Name:</strong> {selectedJob.product_name}</p>
-            <p><strong>Product Image:</strong></p>
-            <p><strong>Repair Status:</strong> {selectedJob.repair_status}</p>
-            <p><strong>Assigned Employee:</strong> {selectedJob.employee_name || 'Unassigned'}</p>
-            <button
-              onClick={() => setIsViewModalOpen(false)}
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}*/}
 
       {/* Update Inventory Modal */}
       {isInventoryModalOpen && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Update Used Inventory</h2>
 
             {/* Display Error Messages */}
@@ -406,11 +380,11 @@ const JobDetails = () => {
 
             <form onSubmit={handleInventorySubmit}>
               <div className="mb-4">
-                <label className="block text-sm font-medium">Inventory Item</label>
+                <label className="block text-sm font-medium mb-1">Inventory Item</label>
                 <select
                   value={selectedInventory}
                   onChange={handleInventoryChange}
-                  className="w-full px-4 py-2 border rounded"
+                  className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select Inventory Item</option>
                   {inventoryItems.map((item) => (
@@ -421,11 +395,11 @@ const JobDetails = () => {
                 </select>
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium">Batch</label>
+                <label className="block text-sm font-medium mb-1">Batch</label>
                 <select
                   value={selectedBatch}
                   onChange={(e) => setSelectedBatch(e.target.value)}
-                  className="w-full px-4 py-2 border rounded"
+                  className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   disabled={!selectedInventory}
                 >
                   <option value="">Select Batch</option>
@@ -437,32 +411,35 @@ const JobDetails = () => {
                 </select>
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium">Quantity Used</label>
+                <label className="block text-sm font-medium mb-1">Quantity Used</label>
                 <input
                   type="number"
                   value={quantityUsed}
                   onChange={(e) => setQuantityUsed(e.target.value)}
-                  className="w-full px-4 py-2 border rounded"
+                  className="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Enter quantity used"
                 />
               </div>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={handleCancelInventoryUpdate}
-                className="ml-2 px-4 py-2 bg-red-500 text-white rounded"
-              >
-                Cancel
-              </button>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={handleCancelInventoryUpdate}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  Save
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
+      
       <UpdateJobAndProduct
         jobId={selectedJobId}
         isOpen={isUpdateModalOpen}
