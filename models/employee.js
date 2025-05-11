@@ -42,6 +42,11 @@ module.exports = (sequelize, DataTypes) => {
           type: DataTypes.DATE,
           allowNull: false,
         },
+        is_active: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: 1, // Default value is 1 (true)
+        }
       },
       {
         tableName :"employees",

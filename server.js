@@ -21,6 +21,7 @@ const jobProductRoutes = require("./src/routes/jobProductRoutes");
 const advanceInvoiceRoutes = require('./src/routes/advanceInvoiceRoutes');
 const inventoryQuotationRoute = require("./src/routes/inventoryQuotationRoute");
 const inventoryOrderRoutes = require('./src/routes/inventoryOrderRoute');
+const dashboardRoutes = require("./src/routes/DashboardData");
 
 
 
@@ -48,6 +49,7 @@ app.use("/api/jobProduct", jobProductRoutes);
 app.use('/api/advance-invoice', advanceInvoiceRoutes);
 app.use("/api/inventoryQuotation", inventoryQuotationRoute);
 app.use("/api/inventoryOrder", inventoryOrderRoutes);
+app.use("/api/dashboard", dashboardRoutes); 
 
 
 const PORT = process.env.PORT || 5000;

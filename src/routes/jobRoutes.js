@@ -2,6 +2,8 @@ const express = require("express");
 const db = require("../config/db");
 const { body, validationResult } = require("express-validator");
 const moment = require("moment");
+const nodemailer = require('nodemailer'); 
+const repairCompletedTemplate = require('../templates/emails/repairCompleted');
 
 const router = express.Router();
 
@@ -498,6 +500,118 @@ router.get('/get/warrantyEligibleJobs', async (req, res) => {
     } catch (error) {
         console.error('Error fetching warranty-eligible jobs:', error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+
+router.put('/updateRepairStatus/:jobId', async (req, res) => {
+    const { jobId } = req.params;
+
+    try {
+        // Fetch the job and customer details
+        const [jobDetails] = await db.query(`
+            SELECT 
+                j.job_id,
+                j.repair_status,
+                c.email AS customer_email,
+                CONCAT(c.firstName, ' ', c.lastName) AS customer_name,
+                p.product_name,
+                p.model
+            FROM jobs j
+            JOIN customers c ON j.customer_id = c.customer_id
+            JOIN products p ON j.product_id = p.product_id
+            WHERE j.job_id = ?
+        `, [jobId]);
+
+        if (jobDetails.length === 0) {
+            return res.status(404).json({ message: "Job not found" });
+        }
+
+        const { customer_email, customer_name, product_name, model } = jobDetails[0];
+
+        // Update the repair status to "complete"
+        await db.query(
+            `UPDATE jobs 
+             SET repair_status = 'completed'
+             WHERE job_id = ?`,
+            [jobId]
+        );
+
+        // Configure the email transporter
+        const transporter = nodemailer.createTransport({
+            service: 'gmail', // Use your email service provider
+            auth: {
+                user: 'thashilapramodi65@gmail.com', 
+                pass: 'arfm emix dixr bnat' 
+            }
+        });
+
+        // Email content using the template
+        const mailOptions = {
+            from: 'thashilapramodi65@gmail.com',
+            to: customer_email,
+            subject: 'Repair Job Completed',
+            html: repairCompletedTemplate({
+                customer_name,
+                jobId,
+                product_name,
+                model
+            })
+        };
+
+        // Send the email
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error sending email:', error);
+                return res.status(500).json({ message: 'Repair status updated, but failed to send email', error: error.message });
+            }
+            console.log('Email sent:', info.response);
+        });
+
+        res.status(200).json({ message: "Repair status updated to 'completed' successfully!" });
+    } catch (error) {
+        console.error('Error updating repair status:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Route for updating job status - PUT /api/jobs/update-status/:jobId
+router.put('/update-status/:jobId', async (req, res) => {
+    const { jobId } = req.params;
+    const { repair_status } = req.body;
+
+    // Validate input
+    if (!repair_status) {
+        return res.status(400).json({ message: "Repair status is required" });
+    }
+
+    // Validate repair status value
+    const validStatuses = ['pending', 'on progress', 'completed', 'cancelled'];
+    if (!validStatuses.includes(repair_status.toLowerCase())) {
+        return res.status(400).json({ message: "Invalid repair status. Must be one of: pending, on progress, completed, cancelled" });
+    }
+
+    try {
+        // Update the job's repair status
+        const [result] = await db.query(
+            `UPDATE jobs 
+             SET repair_status = ?
+             WHERE job_id = ?`,
+            [repair_status.toLowerCase(), jobId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Job not found" });
+        }
+
+        res.status(200).json({ 
+            message: `Job status updated to '${repair_status}' successfully`,
+            jobId
+        });
+    } catch (error) {
+        console.error('Error updating job status:', error);
+        res.status(500).json({ message: 'Server error while updating job status' });
     }
 });
 
