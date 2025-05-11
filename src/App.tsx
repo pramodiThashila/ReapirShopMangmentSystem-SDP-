@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/adminDashboard';
 import Login from './pages/Login';
 import EmployeeRegister from './pages/EmployeeRegister';
 import EmployeeTable from './pages/EmployeeTable';

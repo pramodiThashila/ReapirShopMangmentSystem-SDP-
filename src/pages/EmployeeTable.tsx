@@ -53,7 +53,7 @@ const EmployeeTable = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/employees/${selectedEmployeeId}`);
+      await axios.put(`http://localhost:5000/api/employees/makeinactive/${selectedEmployeeId}`);
       setEmployees(employees.filter((employee) => employee.employee_id !== selectedEmployeeId));
       setShowDeleteModal(false);
     } catch (error) {
