@@ -29,7 +29,7 @@ router.post(
             .notEmpty().withMessage("Address is required")
             .isLength({ max: 255 }).withMessage("Address should not exceed 255 characters"),
         body("password")
-            .notEmpty().withMessage("Password is required")    
+            .notEmpty().withMessage("Password is required")
     ],
     async (req, res) => {
         const errors = validationResult(req);
@@ -37,10 +37,10 @@ router.post(
             return res.status(400).json({ errors: errors.array() });
         }
 
-        
+
 
         try {
-            const { supplier_name, email, phone_number, address ,password} = req.body;
+            const { supplier_name, email, phone_number, address, password } = req.body;
 
             // Check if email already exists
             const [existingSupplier] = await db.query(
@@ -57,19 +57,19 @@ router.post(
                     [phone]
                 );
                 if (existingPhone.length > 0) {
-                    return res.status(400).json({ message:`Phone number ${phone} already exists` });
+                    return res.status(400).json({ message: `Phone number ${phone} already exists` });
                 }
             }
 
-            const hashpassword = await bcrypt.hash(password,10);
+            const hashpassword = await bcrypt.hash(password, 10);
             // Insert supplier
             const [result] = await db.query(
                 "INSERT INTO suppliers (supplier_name, email, address,password) VALUES (?, ?, ?,?)",
-                [supplier_name, email, address,hashpassword]
+                [supplier_name, email, address, hashpassword]
             );
 
             const supplierId = result.insertId;
-            
+
 
             // Insert multiple phone numbers
             if (phone_number.length > 0) {
@@ -187,23 +187,50 @@ router.get("/:id", async (req, res) => {
 router.put(
     "/update/:id",
     [
-        body("supplier_name").optional().isLength({ max: 100 }),
-        body("email").optional().isEmail(),
-        body("address").optional().isLength({ max: 255 }),
-        body("phone_numbers").optional().isArray().custom((phone_numbers) => {
-            for (let phone of phone_numbers) {
-                if (!/^\d{10}$/.test(phone)) {
-                    throw new Error("Phone number should contain exactly 10 digits");
+        // Validate supplier_name
+        body("supplier_name")
+            .optional()
+            .isLength({ max: 100 })
+            .withMessage("Supplier name should not exceed 100 characters"),
+
+        // Validate email
+        body("email")
+            .optional()
+            .isEmail()
+            .withMessage("Invalid email format"),
+
+        // Validate address
+        body("address")
+            .optional()
+            .isLength({ max: 255 })
+            .withMessage("Address should not exceed 255 characters"),
+
+        // Validate phone_numbers
+        body("phone_number")
+            .optional()
+            .isArray()
+            .withMessage("Phone numbers should be an array")
+            .custom((phone_numbers) => {
+                for (let phone of phone_numbers) {
+                    if (!/^(03|07|01)\d{8}$/.test(phone)) {
+                        throw new Error("Phone number should contain exactly 10 digits and start with 03, 07, or 01");
+                    }
                 }
-            }
-            return true;
-        }),
+                return true;
+            }),
     ],
     async (req, res) => {
         const { id } = req.params;
-        const { supplier_name, email, address, phone_number} = req.body;
+        const { supplier_name, email, address, phone_number } = req.body;
+
+        // Validate request body
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
         try {
+            // Update supplier details
             await db.query(
                 "UPDATE suppliers SET supplier_name = ?, email = ?, address = ? WHERE supplier_id = ?",
                 [supplier_name, email, address, id]
@@ -218,6 +245,7 @@ router.put(
 
             res.status(200).json({ message: "Supplier updated successfully!" });
         } catch (error) {
+            console.error("Error updating supplier:", error);
             res.status(500).json({ error: error.message });
         }
     }
