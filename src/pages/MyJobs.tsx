@@ -3,17 +3,17 @@ import axios from 'axios';
 import UpdateJobAndProduct from "./UpdateJobAndProduct";
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Clock, 
-  AlertTriangle, 
-  Search, 
-  ChevronRight, 
-  Plus, 
+import {
+  Clock,
+  AlertTriangle,
+  Search,
+  ChevronRight,
+  Plus,
   ClipboardList,
   Wrench,
   CheckCircle,
-  ArrowLeft, 
-  Eye, 
+  ArrowLeft,
+  Eye,
   Edit2,
   Check,
   X
@@ -73,7 +73,7 @@ const JobDetails = () => {
     try {
       setLoading(true);
       const response = await axios.get(`http://localhost:5000/api/jobs/myjobs/${user.employee_id}`);
-      
+
       if (Array.isArray(response.data)) {
         setJobs(response.data);
       } else {
@@ -98,16 +98,16 @@ const JobDetails = () => {
     try {
       const response = await axios.get(`http://localhost:5000/api/dashboard/employee-jobs/${user.employee_id}`);
       console.log('Job counts response:', response.data);
-      
+
       // Extract values from the nested array structure
       const pendingCount = response.data.pendingJobs?.[0]?.pendingJobs || 0;
       const progressCount = response.data.onProgressJobs?.[0]?.onProgressJobs || 0;
-      
+
       setJobCounts({
         pendingJobs: pendingCount,
         onProgressJobs: progressCount
       });
-      
+
     } catch (error) {
       console.error('Error fetching job counts:', error);
       setJobCounts({
@@ -164,11 +164,11 @@ const JobDetails = () => {
       setShowAlert(true);
       setAlertType("warning");
       setAlertMessage("Please select a job first");
-      
+
       setTimeout(() => {
         setShowAlert(false);
       }, 3000);
-      
+
       return;
     }
     setIsInventoryModalOpen(true);
@@ -195,22 +195,22 @@ const JobDetails = () => {
         `http://localhost:5000/api/jobusedInventory/add/${selectedJob?.job_id}/${selectedInventory}/${selectedBatch}`,
         { Quantity_Used: quantityUsed }
       );
-      
+
       setShowAlert(true);
       setAlertType("success");
       setAlertMessage("Used inventory updated successfully!");
-      
+
       setTimeout(() => {
         setShowAlert(false);
       }, 3000);
-      
+
       setIsInventoryModalOpen(false);
       setQuantityUsed('');
       setSelectedInventory('');
       setSelectedBatch('');
     } catch (error: any) {
       console.error('Error updating used inventory:', error);
-      
+
       if (error.response && error.response.data.errors) {
         const messages = error.response.data.errors.map((err: { msg: string }) => err.msg);
         setErrorMessages(messages);
@@ -244,11 +244,11 @@ const JobDetails = () => {
       setShowAlert(true);
       setAlertType("warning");
       setAlertMessage("Please select a job first");
-      
+
       setTimeout(() => {
         setShowAlert(false);
       }, 3000);
-      
+
       return;
     }
     navigate(`/jobs/${selectedJob.job_id}/used-inventory`);
@@ -264,16 +264,16 @@ const JobDetails = () => {
       await axios.put(`http://localhost:5000/api/jobs/update-status/${jobId}`, {
         repair_status: status
       });
-      
+
       // Show success message
       setShowAlert(true);
       setAlertType("success");
       setAlertMessage(`Job status updated to ${status} successfully!`);
-      
+
       // Refresh job data
       fetchJobs();
       fetchJobCounts();
-      
+
       // Close modal
       setIsStatusModalOpen(false);
     } catch (error) {
@@ -290,7 +290,7 @@ const JobDetails = () => {
 
   const handleStatusSelect = (status: string) => {
     setSelectedStatus(status);
-    
+
     // If selected status is "completed", show confirmation dialog
     if (status.toLowerCase() === 'completed') {
       setIsStatusModalOpen(false);
@@ -305,7 +305,7 @@ const JobDetails = () => {
 
   const confirmStatusUpdate = async () => {
     if (!jobForStatusUpdate) return;
-    
+
     try {
       if (selectedStatus.toLowerCase() === 'completed') {
         // Call the specific API for completed jobs that sends email
@@ -316,16 +316,16 @@ const JobDetails = () => {
           repair_status: selectedStatus
         });
       }
-      
+
       // Show success message
       setShowAlert(true);
       setAlertType("success");
       setAlertMessage(`Job status updated to ${selectedStatus} successfully!`);
-      
+
       // Refresh job data
       fetchJobs();
       fetchJobCounts();
-      
+
       // Close modals
       setConfirmCompleteModalOpen(false);
     } catch (error) {
@@ -349,11 +349,11 @@ const JobDetails = () => {
 
   const filteredJobs = Array.isArray(jobs)
     ? jobs.filter((job) =>
-        job.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (job.employee_name && job.employee_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        job.job_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
-        job.repair_status.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      job.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (job.employee_name && job.employee_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      job.job_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.repair_status.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : [];
 
   const totalJobsToComplete = jobCounts.pendingJobs + jobCounts.onProgressJobs;
@@ -362,18 +362,17 @@ const JobDetails = () => {
     <div className="h-full flex flex-col bg-gray-50">
       {/* Alert notification */}
       {showAlert && (
-        <div 
-          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${
-            alertType === "success" ? "bg-green-100 text-green-800 border-l-4 border-green-500" : 
-            alertType === "error" ? "bg-red-100 text-red-800 border-l-4 border-red-500" : 
-            alertType === "warning" ? "bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500" : 
-            "bg-blue-100 text-blue-800 border-l-4 border-blue-500"
-          }`}
+        <div
+          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${alertType === "success" ? "bg-green-100 text-green-800 border-l-4 border-green-500" :
+              alertType === "error" ? "bg-red-100 text-red-800 border-l-4 border-red-500" :
+                alertType === "warning" ? "bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500" :
+                  "bg-blue-100 text-blue-800 border-l-4 border-blue-500"
+            }`}
         >
-          {alertType === "success" ? <CheckCircle className="h-5 w-5 mr-2" /> : 
-           alertType === "error" ? <AlertTriangle className="h-5 w-5 mr-2" /> : 
-           alertType === "warning" ? <AlertTriangle className="h-5 w-5 mr-2" /> : 
-           <AlertTriangle className="h-5 w-5 mr-2" />}
+          {alertType === "success" ? <CheckCircle className="h-5 w-5 mr-2" /> :
+            alertType === "error" ? <AlertTriangle className="h-5 w-5 mr-2" /> :
+              alertType === "warning" ? <AlertTriangle className="h-5 w-5 mr-2" /> :
+                <AlertTriangle className="h-5 w-5 mr-2" />}
           <span>{alertMessage}</span>
         </div>
       )}
@@ -384,8 +383,8 @@ const JobDetails = () => {
             <Wrench className="h-6 w-6 mr-2 text-blue-600" />
             My Assigned Jobs
           </h1>
-          
-          
+
+
         </div>
 
         {/* Stats Cards */}
@@ -432,7 +431,11 @@ const JobDetails = () => {
           <div className="w-full md:w-auto flex flex-col sm:flex-row gap-2">
             <button
               onClick={handleInventoryUpdateClick}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center"
+              className={`px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center
+    ${selectedJob
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-blue-200 text-blue-400 cursor-not-allowed'}`}
+              disabled={!selectedJob}
             >
               <Plus className="w-5 h-5 mr-2" />
               Add Used Inventory
@@ -441,8 +444,8 @@ const JobDetails = () => {
               onClick={handleNavigateToUsedInventory}
               disabled={!selectedJob}
               className={`px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center
-                ${selectedJob 
-                  ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                ${selectedJob
+                  ? 'bg-purple-600 text-white hover:bg-purple-700'
                   : 'bg-purple-200 text-purple-400 cursor-not-allowed'}`}
             >
               <ClipboardList className="w-5 h-5 mr-2" />
@@ -465,7 +468,7 @@ const JobDetails = () => {
 
       {/* Table Container - This is the scrollable area */}
       <div className="px-6 pb-6 flex-1 overflow-hidden">
-        <div 
+        <div
           ref={tableRef}
           className="bg-white rounded-lg shadow-md h-full overflow-y-auto"
         >
@@ -493,9 +496,8 @@ const JobDetails = () => {
                       <tr
                         key={job.job_id}
                         onClick={() => handleRowClick(job)}
-                        className={`hover:bg-gray-50 transition-colors ${
-                          selectedJob?.job_id === job.job_id ? 'bg-blue-50' : ''
-                        }`}
+                        className={`hover:bg-gray-50 transition-colors ${selectedJob?.job_id === job.job_id ? 'bg-blue-50' : ''
+                          }`}
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           #{job.job_id}
@@ -503,10 +505,10 @@ const JobDetails = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
-                              <img 
-                                className="h-10 w-10 rounded-full object-cover border border-gray-200" 
+                              <img
+                                className="h-10 w-10 rounded-full object-cover border border-gray-200"
                                 src={job.product_image || '/placeholder.png'} // Use a local image in your public folder
-                                alt="Product" 
+                                alt="Product"
                               />
                             </div>
                             <div className="ml-4">
@@ -519,9 +521,9 @@ const JobDetails = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            ${job.repair_status.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                              job.repair_status.toLowerCase() === 'on progress' || job.repair_status.toLowerCase() === 'in progress' ? 'bg-blue-100 text-blue-800' : 
-                                job.repair_status.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' : 
+                            ${job.repair_status.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              job.repair_status.toLowerCase() === 'on progress' || job.repair_status.toLowerCase() === 'in progress' ? 'bg-blue-100 text-blue-800' :
+                                job.repair_status.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' :
                                   'bg-gray-100 text-gray-800'
                             }`}
                           >
@@ -529,7 +531,7 @@ const JobDetails = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {job.employee_name || 
+                          {job.employee_name ||
                             <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
                               Unassigned
                             </span>
@@ -600,61 +602,61 @@ const JobDetails = () => {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
             <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800">Job Details</h2>
-              <button 
-                onClick={() => setIsViewModalOpen(false)} 
+              <button
+                onClick={() => setIsViewModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
                 &times;
               </button>
             </div>
-            
+
             <div className="p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Job ID</p>
                   <p className="font-semibold">#{selectedJob.job_id}</p>
                 </div>
-                
+
                 <div>
                   <p className="text-sm font-medium text-gray-500">Status</p>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                    ${selectedJob.repair_status.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                      selectedJob.repair_status.toLowerCase() === 'on progress' || selectedJob.repair_status.toLowerCase() === 'in progress' ? 'bg-blue-100 text-blue-800' : 
-                        selectedJob.repair_status.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' : 
+                    ${selectedJob.repair_status.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      selectedJob.repair_status.toLowerCase() === 'on progress' || selectedJob.repair_status.toLowerCase() === 'in progress' ? 'bg-blue-100 text-blue-800' :
+                        selectedJob.repair_status.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' :
                           'bg-gray-100 text-gray-800'
                     }`}
                   >
                     {selectedJob.repair_status}
                   </span>
                 </div>
-                
+
                 <div className="sm:col-span-2">
                   <p className="text-sm font-medium text-gray-500">Product Name</p>
                   <p className="font-semibold">{selectedJob.product_name}</p>
                 </div>
-                
+
                 <div className="sm:col-span-2">
                   <p className="text-sm font-medium text-gray-500">Repair Description</p>
                   <p className="text-sm text-gray-700">{selectedJob.repair_description}</p>
                 </div>
-                
+
                 <div className="sm:col-span-2">
                   <p className="text-sm font-medium text-gray-500">Product Image</p>
                   <div className="mt-2">
-                    <img 
-                      src={selectedJob.product_image || 'https://via.placeholder.com/150'} 
-                      alt="Product" 
+                    <img
+                      src={selectedJob.product_image || 'https://via.placeholder.com/150'}
+                      alt="Product"
                       className="w-full h-40 object-contain bg-gray-50 rounded border"
                     />
                   </div>
                 </div>
-                
+
                 <div className="sm:col-span-2">
                   <p className="text-sm font-medium text-gray-500">Assigned to</p>
                   <p className="font-semibold">{selectedJob.employee_name || 'Unassigned'}</p>
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => setIsViewModalOpen(false)}
@@ -674,14 +676,14 @@ const JobDetails = () => {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
             <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800">Add Used Inventory</h2>
-              <button 
-                onClick={handleCancelInventoryUpdate} 
+              <button
+                onClick={handleCancelInventoryUpdate}
                 className="text-gray-500 hover:text-gray-700"
               >
                 &times;
               </button>
             </div>
-            
+
             <div className="p-6">
               {errorMessages.length > 0 && (
                 <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">
@@ -692,7 +694,7 @@ const JobDetails = () => {
                   </ul>
                 </div>
               )}
-              
+
               <form onSubmit={handleInventorySubmit}>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Inventory Item</label>
@@ -709,7 +711,7 @@ const JobDetails = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Batch</label>
                   <select
@@ -731,7 +733,7 @@ const JobDetails = () => {
                     </p>
                   )}
                 </div>
-                
+
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Quantity Used</label>
                   <input
@@ -742,7 +744,7 @@ const JobDetails = () => {
                     placeholder="Enter quantity used"
                   />
                 </div>
-                
+
                 <div className="flex justify-end space-x-2">
                   <button
                     type="button"
@@ -763,7 +765,7 @@ const JobDetails = () => {
           </div>
         </div>
       )}
-      
+
       <UpdateJobAndProduct
         jobId={selectedJobId}
         isOpen={isUpdateModalOpen}
@@ -780,21 +782,21 @@ const JobDetails = () => {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden">
             <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-800">Update Repair Status</h2>
-              <button 
+              <button
                 onClick={cancelStatusUpdate}
                 className="text-gray-500 hover:text-gray-700"
               >
                 &times;
               </button>
             </div>
-            
+
             <div className="p-6">
               <p className="text-sm text-gray-600 mb-4">
                 Select the new repair status for this job:
               </p>
-              
+
               <div className="grid grid-cols-1 gap-3">
-                <button 
+                <button
                   onClick={() => handleStatusSelect('on progress')}
                   className="flex items-center px-4 py-3 rounded-lg border hover:bg-blue-50 transition-colors"
                 >
@@ -803,8 +805,8 @@ const JobDetails = () => {
                   </div>
                   <span className="font-medium">on progress</span>
                 </button>
-                
-                <button 
+
+                <button
                   onClick={() => handleStatusSelect('completed')}
                   className="flex items-center px-4 py-3 rounded-lg border hover:bg-green-50 transition-colors"
                 >
@@ -813,8 +815,8 @@ const JobDetails = () => {
                   </div>
                   <span className="font-medium">Completed</span>
                 </button>
-                
-                <button 
+
+                <button
                   onClick={() => handleStatusSelect('cancelled')}
                   className="flex items-center px-4 py-3 rounded-lg border hover:bg-red-50 transition-colors"
                 >
@@ -828,7 +830,7 @@ const JobDetails = () => {
           </div>
         </div>
       )}
-      
+
       {/* Confirmation Modal for Completed Status */}
       {confirmCompleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -839,22 +841,22 @@ const JobDetails = () => {
               </div>
               <h2 className="text-lg font-bold text-green-800">Confirm Job Completion</h2>
             </div>
-            
+
             <div className="p-6">
               <p className="text-gray-700 mb-4">
                 You are about to mark this job as <span className="font-semibold">completed</span>. This will:
               </p>
-              
+
               <ul className="list-disc list-inside mb-6 text-sm text-gray-600">
                 <li className="mb-2">Update the job status to "completed" in the system</li>
                 <li className="mb-2">Send an email notification to the customer</li>
                 <li>Close the active repair job</li>
               </ul>
-              
+
               <p className="text-sm bg-blue-50 p-3 rounded-lg border border-blue-100 text-blue-700 mb-6">
                 <strong>Note:</strong> Make sure all repair work has been completed and verified before confirming.
               </p>
-              
+
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={cancelStatusUpdate}

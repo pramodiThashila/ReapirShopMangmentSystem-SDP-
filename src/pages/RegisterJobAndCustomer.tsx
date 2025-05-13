@@ -107,12 +107,12 @@ const RegisterJobCustomerProduct = () => {
       } catch (error) {
         console.error("Error fetching employees:", error);
 
-        //debugs
-        setEmployees([
-          { employee_id: "1", first_name: "John", last_name: "Doe" },
-          { employee_id: "2", first_name: "Jane", last_name: "Smith" },
-          { employee_id: "3", first_name: "Robert", last_name: "Johnson" }
-        ]);
+        // //debugs
+        // setEmployees([
+        //   { employee_id: "1", first_name: "John", last_name: "Doe" },
+        //   { employee_id: "2", first_name: "Jane", last_name: "Smith" },
+        //   { employee_id: "3", first_name: "Robert", last_name: "Johnson" }
+        // ]);
       } finally {
         setIsLoadingEmployees(false);
       }
@@ -303,18 +303,21 @@ const RegisterJobCustomerProduct = () => {
   // Handle form inputs
   const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // Update state
     setCustomer((prev) => ({
       ...prev,
       [name]: value,
     }));
-
-    // Clear error specifically for phone numbers
-    if (name === "phoneNumbers") {
-      setErrors((prev) => ({ ...prev, phoneNumbers: "" }));
-    }
-    // Clear error for other fields
+    
+    // Validate name fields (firstName and lastName)
+    if (name === 'firstName' || name === 'lastName') {
+      const error = validateField(name, value);
+      setErrors(prev => ({ ...prev, [name]: error || "" }));
+    } 
+    // Handle other field validations
     else if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -713,6 +716,39 @@ const handleApiError = (error: any) => {
     }
   }, [formAlert.visible]);
 
+  // Update the validateField function or add a new one for first and last name validation
+const validateField = (name: string, value: string): string | null => {
+  switch (name) {
+    case 'firstName':
+    case 'lastName':
+      // Check if empty
+      if (!value.trim()) {
+        return `${name === 'firstName' ? 'First name' : 'Last name'} is required`;
+      }
+      
+      // Check for only letters and apostrophe
+      if (!/^[a-zA-Z']+$/.test(value)) {
+        return `${name === 'firstName' ? 'First name' : 'Last name'} can only contain letters and apostrophe (')`;
+      }
+      
+      // For firstName, check max length of 10
+      if (name === 'firstName' && value.length > 10) {
+        return 'First name should not exceed 10 characters';
+      }
+      
+      // For lastName, check max length of 20
+      if (name === 'lastName' && value.length > 20) {
+        return 'Last name should not exceed 20 characters';
+      }
+      
+      return null;
+    
+    // Add other validations as needed...
+    default:
+      return null;
+  }
+};
+
   return (
     <div className="max-w-5xl mx-auto bg-gray-100 p-6 sm:p-8 rounded-lg mt-8 shadow-lg mb-20">
       <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-8">
@@ -893,7 +929,7 @@ const handleApiError = (error: any) => {
         {/* Registration Progress */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold text-gray-700">Registration Progress</h2>
+            
             {(useExistingCustomer || useExistingProduct) && (
               <div className="flex items-center space-x-2">
                 {useExistingCustomer && (
@@ -1008,7 +1044,7 @@ const handleApiError = (error: any) => {
               )}
             </div>
 
-            {/* First Name */}
+            {/* First Name with improved validation */}
             <div>
               <label className="block text-sm font-medium text-gray-600">First Name</label>
               <input
@@ -1017,20 +1053,25 @@ const handleApiError = (error: any) => {
                 value={customer.firstName}
                 onChange={handleCustomerChange}
                 readOnly={useExistingCustomer}
-                className={`w-full mt-1 px-4 py-2 border ${errors.firstName
+                className={`w-full mt-1 px-4 py-2 border ${
+                  errors.firstName
                     ? "border-red-500"
                     : useExistingCustomer
-                      ? "bg-gray-100 border-gray-300"
-                      : "border-gray-300"
-                  } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
+                    ? "bg-gray-100 border-gray-300"
+                    : "border-gray-300"
+                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
                 placeholder="Enter first name"
                 maxLength={10}
               />
               {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
-              {!errors.firstName && <p className="text-xs text-gray-500 mt-1">Maximum 10 characters</p>}
+              {!errors.firstName && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Only letters and apostrophe allowed. Maximum 10 characters.
+                </p>
+              )}
             </div>
 
-            {/* Last Name */}
+            {/* Last Name with improved validation */}
             <div>
               <label className="block text-sm font-medium text-gray-600">Last Name</label>
               <input
@@ -1039,17 +1080,22 @@ const handleApiError = (error: any) => {
                 value={customer.lastName}
                 onChange={handleCustomerChange}
                 readOnly={useExistingCustomer}
-                className={`w-full mt-1 px-4 py-2 border ${errors.lastName
+                className={`w-full mt-1 px-4 py-2 border ${
+                  errors.lastName
                     ? "border-red-500"
                     : useExistingCustomer
-                      ? "bg-gray-100 border-gray-300"
-                      : "border-gray-300"
-                  } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
+                    ? "bg-gray-100 border-gray-300"
+                    : "border-gray-300"
+                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none`}
                 placeholder="Enter last name"
                 maxLength={20}
               />
               {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
-              {!errors.lastName && <p className="text-xs text-gray-500 mt-1">Maximum 20 characters</p>}
+              {!errors.lastName && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Only letters and apostrophe allowed. Maximum 20 characters.
+                </p>
+              )}
             </div>
 
             {/* Email */}

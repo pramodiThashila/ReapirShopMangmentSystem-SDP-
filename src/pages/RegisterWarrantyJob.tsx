@@ -23,11 +23,33 @@ const RegisterWarrantyJob: React.FC = () => {
   const [repairDescription, setRepairDescription] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // State for styled alerts
+  const [alert, setAlert] = useState<{
+    show: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    show: false,
+    message: '',
+    type: 'info'
+  });
 
   useEffect(() => {
     fetchJobData();
     fetchEmployees();
   }, []);
+
+  // Auto-hide alert after 5 seconds
+  useEffect(() => {
+    if (alert.show) {
+      const timer = setTimeout(() => {
+        setAlert({ ...alert, show: false });
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   const fetchJobData = async () => {
     try {
@@ -70,11 +92,24 @@ const RegisterWarrantyJob: React.FC = () => {
 
     try {
       const response = await axios.post("http://localhost:5000/api/jobs/registerWarrantyJob", payload);
-      alert(response.data.message || "Warranty job registered successfully!");
-      navigate("/jobs/view"); // Redirect to jobs view page
+      // Show success alert
+      setAlert({
+        show: true,
+        message: response.data.message || "Warranty job registered successfully!",
+        type: 'success'
+      });
+      // Redirect after a brief delay to allow the user to see the success message
+      setTimeout(() => {
+        navigate("/jobs/view");
+      }, 2000);
     } catch (err: any) {
       console.error("Error registering warranty job:", err);
-      alert(err.response?.data?.message || "Failed to register warranty job.");
+      // Show error alert
+      setAlert({
+        show: true,
+        message: err.response?.data?.message || "Failed to register warranty job.",
+        type: 'error'
+      });
     }
   };
 
@@ -97,6 +132,44 @@ const RegisterWarrantyJob: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-6">Register Warranty Job</h1>
+      
+      {/* Styled Alert */}
+      {alert.show && (
+        <div className={`mb-6 p-4 rounded-lg shadow-sm flex items-center justify-between ${
+          alert.type === 'success' ? 'bg-green-100 border-l-4 border-green-500 text-green-700' :
+          alert.type === 'error' ? 'bg-red-100 border-l-4 border-red-500 text-red-700' :
+          'bg-blue-100 border-l-4 border-blue-500 text-blue-700'
+        }`}>
+          <div className="flex items-center">
+            <div className="mr-3">
+              {alert.type === 'success' && (
+                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                </svg>
+              )}
+              {alert.type === 'error' && (
+                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                </svg>
+              )}
+              {alert.type === 'info' && (
+                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 8a1 1 0 00-1-1h.01a1 1 0 100 2h-.01a1 1 0 001-1z" clipRule="evenodd"></path>
+                </svg>
+              )}
+            </div>
+            <span>{alert.message}</span>
+          </div>
+          <button 
+            onClick={() => setAlert({ ...alert, show: false })} 
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
+            </svg>
+          </button>
+        </div>
+      )}
 
       {jobData && (
         <div className="mb-6">
@@ -107,6 +180,9 @@ const RegisterWarrantyJob: React.FC = () => {
                 src={jobData.product_image}
                 alt={jobData.product_name}
                 className="w-20 h-20 object-cover rounded-lg border"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2VlZWVlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMThweCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==";
+                }}
               />
             )}
             <div>

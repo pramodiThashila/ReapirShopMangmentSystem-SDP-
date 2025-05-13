@@ -112,14 +112,16 @@ const WarrantyEligibleJobs: React.FC = () => {
           />
         </div>
         <button
-          onClick={handleClaimWarrantyClick}
-          className={`px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-sm ${
-            selectedJob ? '' : 'bg-blue-300 cursor-not-allowed'
-          }`}
-          disabled={!selectedJob}
-        >
-          Claim Warranty
-        </button>
+        onClick={handleClaimWarrantyClick}
+        className={`px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors shadow-sm ${
+          !selectedJob || selectedJob.warranty_claim_status === 'warranty claimed' 
+            ? 'bg-blue-300 cursor-not-allowed' 
+            : ''
+        }`}
+        disabled={!selectedJob || selectedJob.warranty_claim_status === 'warranty claimed'}
+      >
+        Claim Warranty
+      </button>
       </div>
 
       {loading ? (

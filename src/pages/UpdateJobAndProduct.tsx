@@ -35,7 +35,7 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
     repairDescription: "",
     receiveDate: "",
     employeeID: "",
-    repairStatus: "",
+    //repairStatus: "",
   });
 
   // Store original values for cancel operation
@@ -49,7 +49,7 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
     repairDescription: "",
     receiveDate: "",
     employeeID: "",
-    repairStatus: "",
+    //repairStatus: "",
   });
 
   const [productImage, setProductImage] = useState<File | null>(null);
@@ -92,7 +92,7 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
             repairDescription: jobData.repair_description || "",
             receiveDate: jobData.receive_date ? jobData.receive_date.split("T")[0] : "",
             employeeID: jobData.employee_id || "",
-            repairStatus: jobData.repair_status || "pending",
+            //repairStatus: jobData.repair_status || "pending",
           };
 
           setProduct(productData);
@@ -217,14 +217,14 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
       formData.append("repair_description", job.repairDescription);
       
       // Convert status to match backend's expected format
-      const statusMap: Record<string, string> = {
-        "Pending": "pending",
-        "On progress": "on progress", 
-        "Completed": "completed",
-        "Cancelled": "cancelled"
+      // const statusMap: Record<string, string> = {
+      //   "Pending": "pending",
+      //   "On progress": "on progress", 
+      //   "Completed": "completed",
+      //   "Cancelled": "cancelled"
 
-      };
-      formData.append("repair_status", statusMap[job.repairStatus] || job.repairStatus);
+      // };
+      //formData.append("repair_status", statusMap[job.repairStatus] || job.repairStatus);
       
       formData.append("receive_date", job.receiveDate);
       formData.append("employee_id", job.employeeID);
@@ -247,7 +247,7 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
 
       // Make a single API call to update both job and product
       const response = await axios.put(
-        `http://localhost:5000/api/jobProduct/updateJobAndProduct/${jobId}`, 
+        `http://localhost:5000/api/jobProduct/updateJobAndProducts/${jobId}`, 
         formData,
         {
           headers: {
@@ -493,7 +493,7 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
                   ></textarea>
                   {errors.repairDescription && <p className="mt-1 text-red-600">{errors.repairDescription}</p>}
                 </div>
-                <div>
+                {/* <div>
                   <label className="block text-lg font-medium text-gray-700">Repair Status</label>
                   <select
                     name="repairStatus"
@@ -511,7 +511,7 @@ const UpdateJobCustomerProduct: React.FC<UpdateJobCustomerProductProps> = ({
 
                   </select>
                   {errors.repairStatus && <p className="mt-1 text-red-600">{errors.repairStatus}</p>}
-                </div>
+                </div> */}
                 <div>
                   <label className="block text-lg font-medium text-gray-700">Receive Date</label>
                   <input

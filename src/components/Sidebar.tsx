@@ -44,7 +44,6 @@ const menuItems: MenuItem[] = [
     ],
   },
   { path: '/warranty-eligible-jobs', icon: Wrench, label: 'Warranty Claims', subItems: [
-    { path: '/jobAndCustomer/register', label: 'Register Job' },
     {path: '/warranty-eligible-jobs', label: 'Warranty Eligible Jobs'},
   ],
   },
