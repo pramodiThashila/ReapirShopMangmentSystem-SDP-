@@ -27,59 +27,74 @@ interface MenuItem {
   path: string;
   icon: LucideIcon;
   label: string;
-  subItems?: { path: string; label: string }[];
+  roles?: string[];
+  subItems?: { path: string; label: string; roles?: string[] }[];
 }
 
 const menuItems: MenuItem[] = [
-  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/employees', icon: UserCog, label: 'Employees', subItems: [
-      { path: '/employees', label: 'View Employees' },
-      { path: '/employees/register', label: 'Add Employee' },
+  { path: '/dashboard',
+    icon: LayoutDashboard, 
+    label: 'Dashboard',
+    roles: ['owner'] },
+
+  { path: '/employees', icon: UserCog, label: 'Employees',roles: ['owner'], subItems: [
+      { path: '/employees', label: 'View Employees',roles: ['owner'] },
+      { path: '/employees/register', label: 'Add Employee',roles: ['employee','owner'] },
     ],
   },
-  { path: '/jobs/view', icon: Wrench, label: 'Jobs', subItems: [
-      { path: '/jobAndCustomer/register', label: 'Register Job' },
-      { path: '/jobs/view', label: 'View Jobs' },
-      {path: '/jobs/myJobs', label: 'My Jobs'},
+  { path: '/jobs/view', icon: Wrench, label: 'Jobs',roles: ['employee','owner'], subItems: [
+      { path: '/jobAndCustomer/register', label: 'Register Job' ,roles: ['owner']},
+      { path: '/jobs/view', label: 'View Jobs',roles: ['owner'] },
+      {path: '/jobs/myJobs', label: 'My Jobs',roles: ['employee','owner']},
     ],
   },
-  { path: '/warranty-eligible-jobs', icon: Wrench, label: 'Warranty Claims', subItems: [
-    {path: '/warranty-eligible-jobs', label: 'Warranty Eligible Jobs'},
+  { path: '/warranty-eligible-jobs', icon: Wrench, label: 'Warranty Claims',roles: ['owner'], subItems: [
+    {path: '/warranty-eligible-jobs', label: 'Warranty Eligible Jobs',roles: ['owner']},
   ],
   },
-  { path: '/customer/view', icon: Users, label: 'Customer Details', subItems: [
-      { path: '/customer/view', label: 'View Customers' },
-      { path: '/jobAndCustomer/register', label: 'Add Customer And Job' },
+  { path: '/customer/view', icon: Users, label: 'Customer Details',roles: ['employee','owner'], subItems: [
+      { path: '/customer/view', label: 'View Customers' ,roles: ['employee','owner']},
+      { path: '/jobAndCustomer/register', label: 'Add Customer And Job',roles: ['owner'] },
     ],
   },
-  { path: '/inventory/view', icon: Package, label: 'Inventory', subItems: [
-      { path: '/inventory/view', label: 'View Inventory' },
-      {path: '/inventory-purchases', label: 'View Inventory Purchases'},
-      { path: '/inventoryItem/add', label: 'Add New Inventory Item' },
-      { path: '/inventoryItem/batch/add', label: 'Add New Batch' },
-      { path: '/inventory-orders', label: 'View Inventory Orders' },
+  { path: '/inventory/view', icon: Package, label: 'Inventory',roles: ['employee','owner'], subItems: [
+      { path: '/inventory/view', label: 'View Inventory',roles: ['employee','owner'] },
+      {path: '/inventory-purchases', label: 'View Inventory Purchases',roles: ['owner']},
+      { path: '/inventoryItem/add', label: 'Add New Inventory Item'  ,roles: ['owner']},
+      { path: '/inventoryItem/batch/add', label: 'Add New Batch' ,roles: ['owner']},
+      { path: '/inventory-orders', label: 'View Inventory Orders' ,roles: ['owner']},
     ],
   },
-  { path: '/invoices', icon: FileText, label: 'Invoice', subItems: [
-     { path: '/invoices', label: 'View Invoice' },
-      { path: '/finalInvoice', label: 'Create Invoice' },
-      {path: '/advance-invoices', label: 'View Advance Invoice'},
+  { path: '/invoices', icon: FileText, label: 'Invoice',roles: ['employee','owner'], subItems: [
+     { path: '/invoices', label: 'View Invoice' ,roles: ['employee','owner']},
+      { path: '/finalInvoice', label: 'Create Invoice',roles: ['owner'] },
+      {path: '/advance-invoices', label: 'View Advance Invoice',roles: ['employee','owner']},
     ],
   },
-  { path: '/supplier/view', icon: Truck, label: 'Supplier Details', subItems: [
-      { path: '/supplier/view', label: 'View Suppliers' },
-      { path: '/supplier/register', label: 'Add Supplier' },
+  { path: '/supplier/view', icon: Truck, label: 'Supplier Details',roles: ['owner'], subItems: [
+      { path: '/supplier/view', label: 'View Suppliers',roles: ['owner'] },
+      { path: '/supplier/register', label: 'Add Supplier',roles: ['owner'] },
     ],
   },
-  { path: '/customer-feedback', icon: BarChart2, label: 'Customer Feedback' },
-  { path: '/reports', icon: BarChart2, label: 'Reports' },
+  { path: '/customer-feedback', icon: BarChart2, label: 'Customer Feedback',roles: ['owner'] },
+  { path: '/reports', icon: BarChart2, label: 'Reports' ,roles: ['owner']},
 ];
 
 export default function Sidebar({ isCollapsed }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useUser();
+  const { logout, user } = useUser(); // Get user info from context
   const [expandedItems, setExpandedItems] = useState<{ [key: string]: boolean }>({});
+
+  const userRole = user?.role || 'guest'; // Default to 'guest' if no role is found
+
+  // Filter menu items based on the user's role
+  const filteredMenuItems = menuItems.filter(item => 
+    item.roles?.includes(userRole)
+  ).map(item => ({
+    ...item,
+    subItems: item.subItems?.filter(subItem => subItem.roles?.includes(userRole))
+  }));
 
   // Handle logout click
   const handleLogout = () => {
@@ -97,11 +112,9 @@ export default function Sidebar({ isCollapsed }: SidebarProps) {
 
   // Check if a menu item should be expanded
   const isExpanded = (item: MenuItem) => {
-    // Auto-expand if the current path is within this section
     if (location.pathname.startsWith(item.path)) {
       return true;
     }
-    // Otherwise, use the manually expanded state
     return !!expandedItems[item.path];
   };
 
@@ -119,7 +132,7 @@ export default function Sidebar({ isCollapsed }: SidebarProps) {
           
           <div className="overflow-y-auto flex-grow p-4 custom-scrollbar">
             <nav>
-              {menuItems.map((item) => {
+              {filteredMenuItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname.startsWith(item.path);
                 const hasSubItems = item.subItems && item.subItems.length > 0;

@@ -10,40 +10,46 @@ export default function Login() {
   const { login } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const response = await fetch('http://localhost:5000/api/employees/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+  try {
+    const response = await fetch('http://localhost:5000/api/employees/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      }
-
-      const data = await response.json();
-
-      // Store user details in context
-      login({
-        employee_id: data.employee_id,
-        username: data.username,
-        role: data.role,
-      });
-
-      // Redirect to the dashboard
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Login failed:', error);
-      alert('Invalid credentials');
+    if (!response.ok) {
+      throw new Error('Invalid credentials');
     }
-  };
+
+    const data = await response.json();
+
+    // Store user details in context
+    login({
+      employee_id: data.employee_id,
+      username: data.username,
+      role: data.role,
+    });
+
+    // Redirect based on role
+    if (data.role === 'owner') {
+      navigate('/dashboard'); // Redirect owner to dashboard
+    } else if (data.role === 'employee') {
+      navigate('/jobs/myJobs'); // Redirect employee to My Jobs
+    } else {
+      navigate('/'); // Default fallback
+    }
+  } catch (error) {
+    console.error('Login failed:', error);
+    alert('Invalid credentials');
+  }
+};
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-gray-900 bg-blend-overlay bg-opacity-70" 
-      style={{ 
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-gray-900 bg-blend-overlay bg-opacity-70"
+      style={{
         backgroundImage: 'url("https://images.unsplash.com/photo-1621905251189-08b45d6a269e?ixlib=rb-1.2.1&auto=format&fit=crop&q=80&w=2069")'
       }}
     >
@@ -111,6 +117,18 @@ export default function Login() {
               Sign In
             </button>
           </form>
+          <div className="text-center mt-4">
+            <p className="text-sm text-gray-300">
+              Don't have an account?{' '}
+              <button
+                type="button"
+                onClick={() => navigate('/employees/register')}
+                className="text-blue-400 hover:text-blue-300 underline"
+              >
+                Register here
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </div>
