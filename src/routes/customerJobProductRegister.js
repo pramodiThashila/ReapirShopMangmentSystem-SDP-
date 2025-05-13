@@ -13,9 +13,11 @@ router.post(
         // Customer validation
         body("firstName")
             .notEmpty().withMessage("First name is mandatory")
+            .matches(/^[a-zA-Z']+$/).withMessage("First name should only contain letters and apostrophes")
             .isLength({ max: 10 }).withMessage("First name should not exceed 10 characters"),
         body("lastName")
             .notEmpty().withMessage("Last name is mandatory")
+            .matches(/^[a-zA-Z']+$/).withMessage("Last name should only contain letters and apostrophes")
             .isLength({ max: 20 }).withMessage("Last name should not exceed 20 characters"),
         body("email")
             .notEmpty().withMessage("Email is mandatory")
@@ -51,7 +53,14 @@ router.post(
             .isLength({ max: 255 }).withMessage("Repair description cannot exceed 255 characters"),
         body("receiveDate")
             .notEmpty().withMessage("Receive date is required")
-            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)"),
+            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)")
+            .custom(value => {
+                // Check if receive date is not in the future
+                if (new Date(value) > new Date()) {
+                    throw new Error("Receive date cannot be in the future");
+                }
+                return true;
+            }),
         body("employeeID")
             .notEmpty().withMessage("Employee ID is required")
             .isInt().withMessage("Employee ID must be an integer")
@@ -67,7 +76,7 @@ router.post(
 
         try {
             const { firstName, lastName, email, type, phone_number, product_name, model, model_no, repairDescription, receiveDate, employeeID } = req.body;
-            
+
             // Upload to Cloudinary if file exists and store the secure URL
             let product_image = null;
             if (req.file) {
@@ -128,7 +137,7 @@ router.post(
             // Register Product with Cloudinary URL
             const [productResult] = await connection.query(
                 "INSERT INTO products (product_name, model, model_no, product_image,customer_id) VALUES (?, ?, ?,?, ?)",
-                [product_name, model, model_no, product_image,customerID] // product_image is now the Cloudinary URL
+                [product_name, model, model_no, product_image, customerID] // product_image is now the Cloudinary URL
             );
             const productID = productResult.insertId;
 
@@ -232,11 +241,23 @@ router.put(
             .withMessage("Invalid repair status"),
         body("handoverDate").optional().isISO8601()
             .withMessage("Invalid handover date format"),
-        body("receiveDate").optional().isISO8601()
-            .withMessage("Invalid receive date format"),
+        body("receiveDate")
+            .notEmpty().withMessage("Receive date is required")
+            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)")
+            .custom(value => {
+                const inputDate = new Date(value);
+                const today = new Date();
+                // Reset time for both dates to compare only dates
+                inputDate.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0);
+                if (inputDate > today) {
+                    throw new Error("Receive date cannot be in the future");
+                }
+                return true;
+            }),
         body("employeeID").optional().isInt()
             .withMessage("Employee ID must be an integer"),
-            
+
         // Product validation
         body("product_name").optional().isLength({ max: 100 })
             .withMessage("Product name cannot exceed 100 characters"),
@@ -256,14 +277,14 @@ router.put(
 
         try {
             const { jobId } = req.params;
-            const { 
+            const {
                 // Job fields
-                repairDescription, 
-                repairStatus, 
-                handoverDate, 
-                receiveDate, 
+                repairDescription,
+                repairStatus,
+                handoverDate,
+                receiveDate,
                 employeeID,
-                
+
                 // Product fields
                 product_name,
                 model,
@@ -272,14 +293,14 @@ router.put(
 
             // Check if job exists and get associated product_id
             const [jobResult] = await connection.query(
-                "SELECT * FROM jobs WHERE job_id = ?", 
+                "SELECT * FROM jobs WHERE job_id = ?",
                 [jobId]
             );
-            
+
             if (jobResult.length === 0) {
                 await connection.rollback();
                 connection.release();
-                return res.status(404).json({ 
+                return res.status(404).json({
                     errors: [
                         {
                             type: "field",
@@ -290,19 +311,19 @@ router.put(
                     ]
                 });
             }
-            
+
             const productId = jobResult[0].product_id;
-            
+
             // Check if associated product exists
             const [productResult] = await connection.query(
-                "SELECT * FROM products WHERE product_id = ?", 
+                "SELECT * FROM products WHERE product_id = ?",
                 [productId]
             );
-            
+
             if (productResult.length === 0) {
                 await connection.rollback();
                 connection.release();
-                return res.status(404).json({ 
+                return res.status(404).json({
                     errors: [
                         {
                             type: "field",
@@ -324,7 +345,7 @@ router.put(
                     console.error("Error uploading to Cloudinary:", uploadError);
                     await connection.rollback();
                     connection.release();
-                    return res.status(500).json({ 
+                    return res.status(500).json({
                         errors: [
                             {
                                 type: "field",
@@ -365,7 +386,7 @@ router.put(
             if (productUpdateFields.length > 0) {
                 const productQuery = `UPDATE products SET ${productUpdateFields.join(", ")} WHERE product_id = ?`;
                 productUpdateValues.push(productId);
-                
+
                 await connection.query(productQuery, productUpdateValues);
             }
 
@@ -402,7 +423,7 @@ router.put(
             if (jobUpdateFields.length > 0) {
                 const jobQuery = `UPDATE jobs SET ${jobUpdateFields.join(", ")} WHERE job_id = ?`;
                 jobUpdateValues.push(jobId);
-                
+
                 await connection.query(jobQuery, jobUpdateValues);
             }
 
@@ -440,7 +461,7 @@ router.put(
 
         } catch (error) {
             await connection.rollback();
-            
+
             // Handle specific database errors
             if (error.code === "ER_DUP_ENTRY") {
                 const duplicateField = error.sqlMessage.match(/key '(.+?)'/)?.[1];
@@ -468,7 +489,7 @@ router.put(
                     });
                 }
             }
-            
+
             // Default error message
             res.status(500).json({
                 errors: [
@@ -485,7 +506,7 @@ router.put(
         }
     }
 );
- 
+
 // Route to register new job and product for existing customer
 router.post(
     "/registerJobProduct",
@@ -513,7 +534,14 @@ router.post(
             .isLength({ max: 255 }).withMessage("Repair description cannot exceed 255 characters"),
         body("receiveDate")
             .notEmpty().withMessage("Receive date is required")
-            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)"),
+            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)")
+            .custom(value => {
+                // Check if receive date is not in the future
+                if (new Date(value) > new Date()) {
+                    throw new Error("Receive date cannot be in the future");
+                }
+                return true;
+            }),
         body("employeeID")
             .notEmpty().withMessage("Employee ID is required")
             .isInt().withMessage("Employee ID must be an integer")
@@ -529,13 +557,13 @@ router.post(
 
         try {
             const { customer_id, product_name, model, model_no, repairDescription, receiveDate, employeeID } = req.body;
-            
+
             // Check if customer exists
             const [existingCustomer] = await connection.query(
                 "SELECT * FROM customers WHERE customer_id = ?",
                 [customer_id]
             );
-            
+
             if (existingCustomer.length === 0) {
                 return res.status(404).json({
                     errors: [
@@ -548,13 +576,13 @@ router.post(
                     ]
                 });
             }
-            
+
             // Check if employee exists
             const [existingEmployee] = await connection.query(
                 "SELECT * FROM employees WHERE employee_id = ?",
                 [employeeID]
             );
-            
+
             if (existingEmployee.length === 0) {
                 return res.status(404).json({
                     errors: [
@@ -567,7 +595,7 @@ router.post(
                     ]
                 });
             }
-            
+
             // Upload to Cloudinary if file exists and store the secure URL
             let product_image = null;
             if (req.file) {
@@ -583,7 +611,7 @@ router.post(
             // Register Product with Cloudinary URL
             const [productResult] = await connection.query(
                 "INSERT INTO products (product_name, model, model_no, product_image,customer_id) VALUES (?, ?, ?, ?,?)",
-                [product_name, model, model_no, product_image,customer_id]
+                [product_name, model, model_no, product_image, customer_id]
             );
             const productID = productResult.insertId;
 
@@ -707,7 +735,14 @@ router.post(
             .isLength({ max: 255 }).withMessage("Repair description cannot exceed 255 characters"),
         body("receiveDate")
             .notEmpty().withMessage("Receive date is required")
-            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)"),
+            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)")
+            .custom(value => {
+                // Check if receive date is not in the future
+                if (new Date(value) > new Date()) {
+                    throw new Error("Receive date cannot be in the future");
+                }
+                return true;
+            }),
         body("employeeID")
             .notEmpty().withMessage("Employee ID is required")
             .isInt().withMessage("Employee ID must be an integer")
@@ -723,13 +758,13 @@ router.post(
 
         try {
             const { customer_id, product_id, repairDescription, receiveDate, employeeID } = req.body;
-            
+
             // Check if customer exists
             const [existingCustomer] = await connection.query(
                 "SELECT * FROM customers WHERE customer_id = ?",
                 [customer_id]
             );
-            
+
             if (existingCustomer.length === 0) {
                 return res.status(404).json({
                     errors: [
@@ -742,13 +777,13 @@ router.post(
                     ]
                 });
             }
-            
+
             // Check if product exists
             const [existingProduct] = await connection.query(
                 "SELECT * FROM products WHERE product_id = ?",
                 [product_id]
             );
-            
+
             if (existingProduct.length === 0) {
                 return res.status(404).json({
                     errors: [
@@ -761,13 +796,13 @@ router.post(
                     ]
                 });
             }
-            
+
             // Check if employee exists
             const [existingEmployee] = await connection.query(
                 "SELECT * FROM employees WHERE employee_id = ?",
                 [employeeID]
             );
-            
+
             if (existingEmployee.length === 0) {
                 return res.status(404).json({
                     errors: [
@@ -786,7 +821,7 @@ router.post(
                 "SELECT * FROM jobs WHERE product_id = ? AND repair_status != 'completed' AND repair_status != 'cancelled'",
                 [product_id]
             );
-            
+
             if (activeJobs.length > 0) {
                 return res.status(400).json({
                     errors: [
@@ -947,7 +982,14 @@ router.post(
             .isLength({ max: 255 }).withMessage("Repair description cannot exceed 255 characters"),
         body("receiveDate")
             .notEmpty().withMessage("Receive date is required")
-            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)"),
+            .isISO8601().withMessage("Invalid date format (YYYY-MM-DD required)")
+            .custom(value => {
+                // Check if receive date is not in the future
+                if (new Date(value) > new Date()) {
+                    throw new Error("Receive date cannot be in the future");
+                }
+                return true;
+            }),
         body("employeeID")
             .notEmpty().withMessage("Employee ID is required")
             .isInt().withMessage("Employee ID must be an integer")
@@ -963,13 +1005,13 @@ router.post(
 
         try {
             const { customer_id, product_id, repairDescription, receiveDate, employeeID } = req.body;
-            
+
             // Check if customer exists
             const [existingCustomer] = await connection.query(
                 "SELECT * FROM customers WHERE customer_id = ?",
                 [customer_id]
             );
-            
+
             if (existingCustomer.length === 0) {
                 return res.status(404).json({
                     errors: [
@@ -982,13 +1024,13 @@ router.post(
                     ]
                 });
             }
-            
+
             // Check if product exists
             const [existingProduct] = await connection.query(
                 "SELECT * FROM products WHERE product_id = ?",
                 [product_id]
             );
-            
+
             if (existingProduct.length === 0) {
                 return res.status(404).json({
                     errors: [
@@ -1001,13 +1043,13 @@ router.post(
                     ]
                 });
             }
-            
+
             // Check if employee exists
             const [existingEmployee] = await connection.query(
                 "SELECT * FROM employees WHERE employee_id = ?",
                 [employeeID]
             );
-            
+
             if (existingEmployee.length === 0) {
                 return res.status(404).json({
                     errors: [
@@ -1026,7 +1068,7 @@ router.post(
                 "SELECT * FROM jobs WHERE product_id = ? AND repair_status != 'completed' AND repair_status != 'cancelled'",
                 [product_id]
             );
-            
+
             if (activeJobs.length > 0) {
                 return res.status(400).json({
                     errors: [

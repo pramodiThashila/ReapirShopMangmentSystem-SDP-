@@ -10,7 +10,7 @@ const router = express.Router();
  * Handles image uploads to Cloudinary
  */
 router.put(
-    "/updateJobAndProduct/:jobId",
+    "/updateJobAndProducts/:jobId",
     upload.single("product_image"),
     [
         // Job validation
@@ -20,8 +20,22 @@ router.put(
             .withMessage("Invalid repair status"),
         body("handover_date").optional().isISO8601()
             .withMessage("Invalid handover date format"),
-        body("receive_date").optional().isISO8601()
-            .withMessage("Invalid receive date format"),
+        body("receive_date").optional()
+            .isISO8601().withMessage("Invalid receive date format")
+            .custom(value => {
+                const receiveDate = new Date(value);
+                const today = new Date();
+
+                // Reset time portions for comparison of just the dates
+                receiveDate.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0);
+
+                if (receiveDate > today) {
+                    throw new Error("Receive date cannot be in the future");
+                }
+
+                return true;
+            }),
         body("employee_id").optional().isInt()
             .withMessage("Employee ID must be an integer"),
             
