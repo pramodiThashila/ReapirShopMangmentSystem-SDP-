@@ -19,8 +19,8 @@ router.post(
             .isArray().withMessage("Phone numbers should be an array")
             .custom((phone_numbers) => {
                 for (let phone of phone_numbers) {
-                    if (!/^07\d{8}$/.test(phone)) {
-                        throw new Error("Phone number should contain exactly 10 digits and start from 07");
+                    if (!/^(07|01|03)\d{8}$/.test(phone)) {
+                        throw new Error("Phone number should contain exactly 10 digits and start from 07,03,01");
                     }
                 }
                 return true;
@@ -30,6 +30,8 @@ router.post(
             .isLength({ max: 255 }).withMessage("Address should not exceed 255 characters"),
         body("password")
             .notEmpty().withMessage("Password is required")
+            .isLength({min: 6}).withMessage("Password must be at least 6 characters long")
+            //.matches(/^(?=.*[0-9])(?=.*[!@#$%^&*])/, "g")
     ],
     async (req, res) => {
         const errors = validationResult(req);
