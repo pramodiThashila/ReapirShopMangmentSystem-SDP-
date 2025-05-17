@@ -16,7 +16,7 @@ const Footer = () => {
               Your trusted partner for electronic repairs and services since 2010.
               We specialize in fast, reliable repairs with genuine parts.
             </p>
-            <div className="flex space-x-4">
+            {/* <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-primary-500 transition" aria-label="Facebook">
                 <Facebook size={20} />
               </a>
@@ -26,10 +26,10 @@ const Footer = () => {
               <a href="#" className="text-gray-400 hover:text-primary-500 transition" aria-label="Instagram">
                 <Instagram size={20} />
               </a>
-            </div>
+            </div> */}
           </div>
 
-          {/* Quick Links */}
+          {/* Quick Links
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
             <nav className="flex flex-col space-y-2">
@@ -39,7 +39,7 @@ const Footer = () => {
               <Link to="/supplier/quotation" className="text-gray-400 hover:text-primary-500 transition">Submit Quotation</Link>
               <Link to="/supplier/out-of-stock" className="text-gray-400 hover:text-primary-500 transition">Out of Stock Products</Link>
             </nav>
-          </div>
+          </div> */}
 
           {/* Contact */}
           <div>
@@ -47,11 +47,11 @@ const Footer = () => {
             <div className="space-y-3">
               <p className="flex items-start space-x-3">
                 <MapPin className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
-                <span>123 Tech Street, Electronics District, City, 12345</span>
+                <span>123 malwatte Road, petta, City</span>
               </p>
               <p className="flex items-center space-x-3">
                 <Phone className="w-5 h-5 text-primary-500 flex-shrink-0" />
-                <span>(123) 456-7890</span>
+                <span>(+94) 85642129</span>
               </p>
               <p className="flex items-center space-x-3">
                 <Mail className="w-5 h-5 text-primary-500 flex-shrink-0" />
@@ -61,9 +61,9 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="pt-8 mt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
+        {/* <div className="pt-8 mt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
           <p>&copy; {new Date().getFullYear()} Bandu Electronics. All rights reserved.</p>
-        </div>
+        </div> */}
       </div>
     </footer>
   );

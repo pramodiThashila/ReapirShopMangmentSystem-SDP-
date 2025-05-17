@@ -30,7 +30,7 @@ const QuotationPage = () => {
       productName: `${productName} (${specification})`,
     }));
 
-    // Get supplier data from localStorage or API
+
     const supplierData = localStorage.getItem('supplierData');
     if (supplierData) {
       const parsedData = JSON.parse(supplierData);
@@ -225,7 +225,9 @@ const QuotationPage = () => {
                       onChange={handleChange}
                       className={`input pl-10 ${errors.quotationPrice ? 'border-red-500' : ''}`}
                     />
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      Rs.
+                    </span>
                   </div>
                   {errors.quotationPrice && <p className="mt-2 text-sm text-red-600">{errors.quotationPrice}</p>}
                 </div>

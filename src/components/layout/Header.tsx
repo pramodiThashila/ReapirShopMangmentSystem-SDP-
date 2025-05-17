@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, X, Cpu, User, ChevronDown } from 'lucide-react';
 
@@ -8,10 +8,12 @@ interface HeaderProps {
 
 const Header = ({ isScrolled }: HeaderProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSupplier, setIsSupplier] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [supplierData, setSupplierData] = useState<any>(null);
   const location = useLocation();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Check if current path starts with /supplier to determine if supplier view
@@ -37,8 +39,23 @@ const Header = ({ isScrolled }: HeaderProps) => {
     checkIfLoggedIn();
   }, [location.pathname]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
+  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `block py-2 px-3 transition ${
@@ -87,15 +104,15 @@ const Header = ({ isScrolled }: HeaderProps) => {
                 <NavLink to="/supplier" className={navLinkClass} end>
                   Home
                 </NavLink>
-                <NavLink to="/supplier/quotation" className={navLinkClass}>
+                <NavLink to="/supplier/out-of-stock" className={navLinkClass}>
                   Submit Quote
                 </NavLink>
-                <NavLink to="/supplier/out-of-stock" className={navLinkClass}>
-                  Out of Stock
-                </NavLink>
                 {isLoggedIn && (
-                  <div className="relative group">
-                    <button className="flex items-center py-2 px-3 text-gray-700 hover:text-blue-600 rounded-full">
+                  <div className="relative" ref={dropdownRef}>
+                    <button 
+                      className="flex items-center py-2 px-3 text-gray-700 hover:text-blue-600 rounded-full"
+                      onClick={toggleDropdown}
+                    >
                       <div className="flex items-center">
                         <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium mr-2">
                           {supplierData?.supplier_name ? getInitials(supplierData.supplier_name) : 'S'}
@@ -103,37 +120,44 @@ const Header = ({ isScrolled }: HeaderProps) => {
                         <span className="text-sm font-medium hidden lg:block">
                           {supplierData?.supplier_name || 'Supplier'}
                         </span>
-                        <ChevronDown className="w-4 h-4 ml-1" />
+                        <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${dropdownOpen ? 'transform rotate-180' : ''}`} />
                       </div>
                     </button>
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 hidden group-hover:block border border-gray-200">
-                      <div className="px-4 py-3 border-b border-gray-200">
-                        <p className="text-sm font-medium text-gray-900">
-                          {supplierData?.supplier_name || 'Supplier'}
-                        </p>
-                        <p className="text-xs text-gray-500 truncate">
-                          {supplierData?.email || ''}
-                        </p>
+                    {dropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 border border-gray-200 z-50">
+                        <div className="px-4 py-3 border-b border-gray-200">
+                          <p className="text-sm font-medium text-gray-900">
+                            {supplierData?.supplier_name || 'Supplier'}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {supplierData?.email || ''}
+                          </p>
+                        </div>
+                        <Link 
+                          to="/supplier/profile" 
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          Settings
+                        </Link>
+                        <Link 
+                          to="/supplier/quotations" 
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          Dashboard
+                        </Link>
+                        <button 
+                          onClick={() => {
+                            handleLogout();
+                            setDropdownOpen(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Logout
+                        </button>
                       </div>
-                      <Link 
-                        to="/supplier/profile" 
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Settings
-                      </Link>
-                      <Link 
-                        to="/supplier/quotations" 
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        dashboard
-                      </Link>
-                      <button 
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Logout
-                      </button>
-                    </div>
+                    )}
                   </div>
                 )}
                 {!isLoggedIn && (
@@ -172,7 +196,7 @@ const Header = ({ isScrolled }: HeaderProps) => {
         {menuOpen && (
           <nav className="md:hidden py-4 space-y-2 border-t mt-4">
             {isSupplier ? (
-              // Mobile Supplier Navigation
+              // M Supplier Navigation
               <>
                 {isLoggedIn && (
                   <div className="flex items-center py-2 px-3 mb-2 border-b border-gray-200 pb-4">
@@ -188,11 +212,8 @@ const Header = ({ isScrolled }: HeaderProps) => {
                 <NavLink to="/supplier" className={navLinkClass} onClick={closeMenu} end>
                   Home
                 </NavLink>
-                <NavLink to="/supplier/quotation" className={navLinkClass} onClick={closeMenu}>
-                  Submit Quote
-                </NavLink>
                 <NavLink to="/supplier/out-of-stock" className={navLinkClass} onClick={closeMenu}>
-                  Out of Stock
+                  Submit Quote
                 </NavLink>
                 {isLoggedIn ? (
                   <>
@@ -219,7 +240,7 @@ const Header = ({ isScrolled }: HeaderProps) => {
                 )}
               </>
             ) : (
-              // Mobile Customer Navigation
+              // M Customer Navigation
               <>
                 <NavLink to="/home" className={navLinkClass} onClick={closeMenu} end>
                   Home

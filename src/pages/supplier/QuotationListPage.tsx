@@ -104,7 +104,7 @@ const QuotationListPage = () => {
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
-      // Don't set error state to avoid UI disruption if only orders fail but quotations succeed
+      
     } finally {
       setLoading(false);
     }
@@ -424,7 +424,7 @@ const QuotationListPage = () => {
                 Confirm Order
               </button>
             </div>
-            <style jsx>{`
+            <style>{`
               @keyframes fadeIn {
                 from {
                   opacity: 0;

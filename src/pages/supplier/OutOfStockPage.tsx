@@ -72,13 +72,7 @@ const OutOfStockPage = () => {
               Browse our current out-of-stock items and submit quotations for products you can supply.
             </p>
           </div>
-          <Link
-            to="/supplier/quotation"
-            className="btn-accent mt-4 md:mt-0"
-          >
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            Submit Quotation
-          </Link>
+          
         </div>
         
         <div className="card p-6 mb-8">

@@ -9,7 +9,7 @@ const HomePage = () => {
         <div className="container py-16 md:py-24">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Professional Electronics Repair & Service
+              Professional Electrical Repair & Service
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-primary-100">
               Fast repairs, genuine parts, and expert technicians to get your devices working perfectly again.
@@ -33,7 +33,7 @@ const HomePage = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Our Services</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Bandu Electronics offers a comprehensive range of repair and maintenance services for all your electronic devices.
+              Bandu Electricals offers a comprehensive range of repair and maintenance services for all your electrical devices.
             </p>
           </div>
 
@@ -45,7 +45,7 @@ const HomePage = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">Repair Services</h3>
               <p className="text-gray-600">
-                Expert repair for smartphones, laptops, TVs, and other electronic devices with genuine parts and warranty.
+                Expert repair for fans, blenders, Motors, and other electricals devices with genuine parts and warranty.
               </p>
             </div>
 
@@ -92,7 +92,7 @@ const HomePage = () => {
               </div>
               <h3 className="text-xl font-semibold mb-2">Drop Off Device</h3>
               <p className="text-gray-600">
-                Bring your device to our store or schedule a pickup. We'll provide an initial assessment.
+                Bring your device to our store .
               </p>
             </div>
 

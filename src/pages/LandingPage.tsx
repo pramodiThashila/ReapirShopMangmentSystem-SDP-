@@ -19,8 +19,8 @@ const LandingPage = () => {
             <span className="ml-2 text-xl font-bold text-gray-800">Bandu Electronics</span>
           </div>
           <div className="flex gap-4">
-            <Link to="/about" className="text-gray-600 hover:text-primary-600">About</Link>
-            <Link to="/contact" className="text-gray-600 hover:text-primary-600">Contact</Link>
+            {/* <Link to="/about" className="text-gray-600 hover:text-primary-600">About</Link>
+            <Link to="/contact" className="text-gray-600 hover:text-primary-600">Contact</Link> */}
           </div>
         </div>
       </header>
@@ -123,14 +123,14 @@ const LandingPage = () => {
       <footer className="bg-gray-800 text-gray-400 py-8">
         <div className="container">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
+            {/* <div className="mb-4 md:mb-0">
               <p>&copy; {new Date().getFullYear()} Bandu Electronics. All rights reserved.</p>
             </div>
             <div className="flex gap-6">
               <Link to="/privacy" className="hover:text-white">Privacy Policy</Link>
               <Link to="/terms" className="hover:text-white">Terms of Service</Link>
               <Link to="/contact" className="hover:text-white">Contact</Link>
-            </div>
+            </div> */}
           </div>
         </div>
       </footer>

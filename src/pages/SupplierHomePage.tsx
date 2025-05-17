@@ -57,18 +57,18 @@ const SupplierHomePage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Feature Card 1 */}
-            <div className="card p-6 transition hover:shadow-md">
+           <div className="card p-6 transition hover:shadow-md">
               <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-4">
                 <ShoppingBag className="w-6 h-6" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Inventory Management</h3>
               <p className="text-gray-600">
-                Track your inventory in real-time, update stock levels, and receive notifications for low stock items.
+                Track your quotation updates,manage your shippments, and view order history all in one place.
               </p>
-              <Link to="/supplier/inventory" className="text-blue-600 hover:underline inline-flex items-center mt-4">
-                Manage Inventory <span className="ml-1">→</span>
+              <Link to="/supplier/quotations" className="text-blue-600 hover:underline inline-flex items-center mt-4">
+                Dashboard <span className="ml-1">→</span>
               </Link>
-            </div>
+            </div> 
 
             {/* Feature Card 2 */}
             <div className="card p-6 transition hover:shadow-md">
@@ -102,7 +102,7 @@ const SupplierHomePage = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gray-50">
+      {/* <section className="py-16 bg-gray-50">
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Why Partner With Us?</h2>
@@ -128,36 +128,36 @@ const SupplierHomePage = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Quick Actions Section */}
-      <section className="py-16">
-        <div className="container">
+      {/*<section className="py-16">
+        <div className="container" >
           <h2 className="text-3xl font-bold mb-8 text-center">Quick Actions</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Link to="/supplier/inventory" className="p-6 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition">
+             <Link to="/supplier/quotations" className="p-6 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition">
               <Box className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold">Manage Inventory</h3>
-            </Link>
+              <h3 className="font-semibold">Dashboard</h3>
+            </Link> 
             
             <Link to="/supplier/out-of-stock" className="p-6 bg-red-50 hover:bg-red-100 rounded-lg text-center transition">
               <AlertTriangle className="w-8 h-8 text-red-600 mx-auto mb-3" />
               <h3 className="font-semibold">Out-of-Stock Items</h3>
             </Link>
             
-            <Link to="/supplier/quotations/new" className="p-6 bg-green-50 hover:bg-green-100 rounded-lg text-center transition">
+            <Link to="/supplier/out-of-stock" className="p-6 bg-green-50 hover:bg-green-100 rounded-lg text-center transition">
               <FileText className="w-8 h-8 text-green-600 mx-auto mb-3" />
               <h3 className="font-semibold">Send Quotation</h3>
             </Link>
             
-            <Link to="/supplier/analytics" className="p-6 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition">
+            {/* <Link to="/supplier/analytics" className="p-6 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition">
               <TrendingUp className="w-8 h-8 text-purple-600 mx-auto mb-3" />
               <h3 className="font-semibold">View Analytics</h3>
-            </Link>
+            </Link> 
           </div>
         </div>
-      </section>
+      </section>*/}
 
       {/* CTA Section */}
       <section className="py-16 bg-blue-700 text-white">
@@ -170,9 +170,9 @@ const SupplierHomePage = () => {
             <Link to="/supplier/register" className="btn bg-white text-blue-700 hover:bg-gray-100">
               Sign Up Now
             </Link>
-            <Link to="/supplier/tour" className="btn bg-transparent border border-white text-white hover:bg-blue-800">
+            {/* <Link to="/supplier/tour" className="btn bg-transparent border border-white text-white hover:bg-blue-800">
               Take a Tour
-            </Link>
+            </Link> */}
           </div>
         </div>
       </section>

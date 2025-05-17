@@ -48,7 +48,7 @@ const SupplierLogin = () => {
         password
       });
       
-      // Store supplier info in localStorage or context
+      
       localStorage.setItem('supplierData', JSON.stringify(response.data.supplier));
       localStorage.setItem('isSupplierLoggedIn', 'true');
       
