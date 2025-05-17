@@ -15,7 +15,8 @@ import {
   Package,
   ClipboardList,
   ChevronRight,
-  Eye
+  Eye,
+  DollarSign
 } from 'lucide-react';
 
 const JobDetails = () => {
@@ -202,7 +203,6 @@ const fallbackImageBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZ
       job.repair_status.toLowerCase().includes(searchQuery.toLowerCase())
     )
     : jobs;
-
   //  handle advance invoice button click
   const handleAdvanceInvoiceClick = () => {
     if (!selectedJob) {
@@ -211,6 +211,21 @@ const fallbackImageBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZ
     }
 
     navigate(`/advance-payment-invoice?jobId=${selectedJob.job_id}`);
+  };
+
+  // Handle create final invoice button click
+  const handleCreateInvoiceClick = () => {
+    if (!selectedJob) {
+      showNotification("Please select a job first.", "warning");
+      return;
+    }
+
+    if (selectedJob.repair_status.toLowerCase() !== 'completed') {
+      showNotification("Only completed jobs can be invoiced.", "warning");
+      return;
+    }
+
+    navigate(`/finalInvoice?jobId=${selectedJob.job_id}`);
   };
 
   const handleNavigateToUsedInventory = () => {
@@ -321,17 +336,28 @@ const fallbackImageBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZ
                   : 'bg-blue-200 text-blue-400 cursor-not-allowed'}`}
               disabled={!selectedJob}
             >
-              <FileText className="w-5 h-5 mr-2" />
-              Create Advance Invoice
+              <FileText className="w-5 h-5 mr-2" />  Create Advance Invoice
+            </button>
+
+            <button
+              onClick={handleCreateInvoiceClick}
+              className={`px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center
+                ${selectedJob && selectedJob.repair_status.toLowerCase() === 'completed'
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-green-200 text-green-400 cursor-not-allowed'}`}
+              disabled={!selectedJob || selectedJob.repair_status.toLowerCase() !== 'completed'}
+            >
+              
+              Create Final Invoice
             </button>
 
             <button
               onClick={handleInventoryUpdateClick}
               className={`px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center
-              ${selectedJob
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-green-200 text-green-400 cursor-not-allowed'}`}
-              disabled={!selectedJob}
+              ${selectedJob && selectedJob.repair_status.toLowerCase() !=='completed'
+                  ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                  : 'bg-yellow-200 text-yellow-400 cursor-not-allowed'}`}
+              disabled={!selectedJob || selectedJob.repair_status.toLowerCase() !== 'completed'}
             >
               <Plus className="w-5 h-5 mr-2" />
               Add Used Inventory

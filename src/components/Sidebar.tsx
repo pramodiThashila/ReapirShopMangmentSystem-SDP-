@@ -77,7 +77,13 @@ const menuItems: MenuItem[] = [
     ],
   },
   { path: '/customer-feedback', icon: BarChart2, label: 'Customer Feedback',roles: ['owner'] },
-  { path: '/reports', icon: BarChart2, label: 'Reports' ,roles: ['owner']},
+  { path: '/reports', icon: BarChart2, label: 'Reports' ,roles: ['owner'],subItems: [
+    { path: '/reports/purchase', label: 'Purchase Report',roles: ['owner'] },
+    { path: '/reports/valuation', label: 'Inventory Valuation Report',roles: ['owner'] },
+    { path: '/reports/income', label: 'Income Report',roles: ['owner'] },
+    { path: '/reports/customer', label: 'Top Customer Report',roles: ['owner'] }
+  ],
+  },
 ];
 
 export default function Sidebar({ isCollapsed }: SidebarProps) {

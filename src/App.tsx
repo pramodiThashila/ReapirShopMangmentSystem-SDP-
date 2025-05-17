@@ -31,6 +31,10 @@ import CustomerFeedback from './pages/CustomerFeedback';
 import QuotationView from './pages/QuotationView';
 import OrdersView from './pages/OrdersView';
 import EditAccount from './pages/EditAccount';
+import PurchaseReport from './pages/PurchaseReport';
+import ValuationReport from './pages/ValuationReport';
+import IncomeReport from './pages/IncomeReport';
+import CustomerReport from './pages/CustomerReport';
 
 function App() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -80,6 +84,10 @@ function App() {
                       <Route path="/restock/:inventoryItem_id" element={<QuotationView />} />
                       <Route path="/inventory-orders" element={<OrdersView />} />
                       <Route path="/edit-account" element={<EditAccount />} />
+                      <Route path="/reports/purchase" element={<PurchaseReport />} />
+                      <Route path="/reports/valuation" element={<ValuationReport />} />
+                      <Route path="/reports/income" element={<IncomeReport />} />
+                      <Route path="/reports/customer" element={<CustomerReport />} />
                     </Routes>
                   </main>
                 </div>
