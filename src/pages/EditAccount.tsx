@@ -139,32 +139,55 @@ const EditAccount: React.FC = () => {
   const validatePersonalDetails = () => {
     const newErrors: Record<string, string> = {};
     
-    // Name validation
-    if (!formData?.first_name) {
-      newErrors.first_name = 'First name is required';
-    } else if (!/^[a-zA-Z']+$/.test(formData.first_name)) {
-      newErrors.first_name = "First name should only contain letters and ' symbol";
+    // First name validation
+    if (formData?.first_name) {
+      if (!/^[a-zA-Z']+$/.test(formData.first_name)) {
+        newErrors.first_name = "First name should only contain letters and ' symbol";
+      } else if (formData.first_name.length > 50) {
+        newErrors.first_name = "First name should not exceed 50 characters";
+      }
     }
 
-    if (!formData?.last_name) {
-      newErrors.last_name = 'Last name is required';
-    } else if (!/^[a-zA-Z']+$/.test(formData.last_name)) {
-      newErrors.last_name = "Last name should only contain letters and ' symbol";
+    // Last name validation
+    if (formData?.last_name) {
+      if (!/^[a-zA-Z']+$/.test(formData.last_name)) {
+        newErrors.last_name = "Last name should only contain letters and ' symbol";
+      } else if (formData.last_name.length > 50) {
+        newErrors.last_name = "Last name should not exceed 50 characters";
+      }
     }
 
     // Email validation
-    if (!formData?.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+    if (formData?.email) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = "Invalid email format";
+      } else if (formData.email.length > 100) {
+        newErrors.email = "Email should not exceed 100 characters";
+      }
     }
 
-    // Phone validation
+    // Phone validation - match exactly the backend pattern
     phoneNumbers.forEach((phone, index) => {
       if (phone && !/^07\d{8}$/.test(phone)) {
-        newErrors[`phone_${index}`] = 'Phone should contain 10 digits and start with 07';
+        newErrors[`phone_${index}`] = "Telephone number should contain 10 digits and start with 07";
       }
     });
+
+    // Date of birth validation
+    if (formData?.dob) {
+      const dateOnly = formData.dob.split('T')[0];
+      const dateOfBirth = moment(dateOnly, 'YYYY-MM-DD');
+      const now = moment();
+      const age = now.diff(dateOfBirth, 'years');
+      
+      if (!dateOfBirth.isValid()) {
+        newErrors.dob = "Invalid date";
+      } else if (dateOfBirth.isAfter(now)) {
+        newErrors.dob = "Date of birth cannot be a future date";
+      } else if (age < 18) {
+        newErrors.dob = "Employee must be at least 18 years old";
+      }
+    }
 
     setErrors(prevErrors => ({ ...prevErrors, ...newErrors }));
     return Object.keys(newErrors).length === 0;
@@ -203,13 +226,22 @@ const EditAccount: React.FC = () => {
       setUpdateSuccess(prev => ({ ...prev, details: false }));
       setUpdateError(prev => ({ ...prev, details: '' }));
       
-      const updateData = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        email: formData.email,
-        phone_number: phoneNumbers.filter(p => p.trim() !== ''),
-        dob: formData.dob,
-      };
+      // Make sure we're only sending fields that were updated and extract date part from dob
+      const updateData: Partial<EmployeeData & { phone_number: string[] }> = {};
+      
+      if (formData.first_name) updateData.first_name = formData.first_name;
+      if (formData.last_name) updateData.last_name = formData.last_name;
+      if (formData.email) updateData.email = formData.email;
+      
+      // Filter out empty phone numbers
+      if (phoneNumbers.length > 0) {
+        updateData.phone_number = phoneNumbers.filter(p => p.trim() !== '');
+      }
+      
+      if (formData.dob) {
+        // Extract only the date part as required by backend
+        updateData.dob = formData.dob.split('T')[0];
+      }
       
       await axios.patch(
         `http://localhost:5000/api/employees/update-details/${formData.employee_id}`, 
@@ -393,10 +425,12 @@ const EditAccount: React.FC = () => {
               <input
                 type="date"
                 name="dob"
-                value={moment(formData.dob).format('YYYY-MM-DD')}
+                value={formData.dob ? moment(formData.dob).format('YYYY-MM-DD') : ''}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className={`w-full px-3 py-2 border rounded-md ${errors.dob ? 'border-red-500' : 'border-gray-300'}`}
+                max={moment().subtract(18, 'years').format('YYYY-MM-DD')} // Set max date to 18 years ago
               />
+              {errors.dob && <p className="text-red-500 text-sm mt-1">{errors.dob}</p>}
             </div>
           </div>
           
@@ -569,16 +603,7 @@ const EditAccount: React.FC = () => {
         </div>
       </div>
       
-      {/* Return to Dashboard Button */}
-      <div className="flex justify-center">
-        <button
-          type="button"
-          onClick={() => navigate('/')}
-          className="px-6 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-        >
-          Back to Dashboard
-        </button>
-      </div>
+     
     </div>
   );
 };

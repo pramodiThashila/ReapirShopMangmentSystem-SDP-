@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { Edit2 } from 'lucide-react';
 
 interface Customer {
   customer_id: number;
@@ -244,21 +245,23 @@ const CustomerView = () => {
                   <td className="px-4 py-2 text-sm text-gray-700">{customer.lastName}</td>
                   <td className="px-4 py-2 text-sm text-gray-700">{customer.email}</td>
                   <td className="px-4 py-2 text-sm text-gray-700">{customer.type}</td>
-                  <td className="px-4 py-2 text-sm text-gray-700">{customer.phone_number.join(', ')}</td>
-                  <td className="px-4 py-2 text-center">
+                  <td className="px-4 py-2 text-sm text-gray-700">{customer.phone_number.join(', ')}</td>                  <td className="px-4 py-2 text-center">
                     <div className="flex justify-center space-x-2">
                       <button
                         onClick={() => handleUpdateClick(customer)}
-                        className="px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600 transition"
+                        title="Update customer"
+                        className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-100 transition-colors"
                       >
-                        Update
+                        <Edit2 className="h-4 w-4" />
                       </button>
+                      {/* Uncomment if you need to implement delete functionality
                       <button
                         onClick={() => handleDeleteClick(customer.customer_id)}
-                        className="px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600 transition"
+                        title="Delete customer"
+                        className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-100 transition-colors"
                       >
-                        Delete
-                      </button>
+                        <Trash className="h-4 w-4" />
+                      </button> */}
                     </div>
                   </td>
                 </tr>

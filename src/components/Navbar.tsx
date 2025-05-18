@@ -63,9 +63,9 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           </button>
         </div>
         <div className="flex items-center gap-4">
-          <button className="text-gray-500 hover:text-gray-600">
+          {/* <button className="text-gray-500 hover:text-gray-600">
             <Bell size={20} />
-          </button>
+          </button> */}
           <div 
             className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 rounded-full py-1 px-2 transition-colors"
             onClick={handleUserClick}

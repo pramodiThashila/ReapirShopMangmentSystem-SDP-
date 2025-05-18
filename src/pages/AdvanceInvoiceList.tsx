@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Eye } from 'lucide-react';
 
 interface AdvanceInvoice {
   AdvanceInvoice_Id: number;
@@ -181,13 +182,13 @@ const AdvanceInvoiceList: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                     <span className="font-medium">Rs {formatCurrency(invoice.advance_amount)}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                  </td>                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                     <button
                       onClick={() => navigate(`/advance-invoice/${invoice.AdvanceInvoice_Id}`)}
-                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      title="View invoice details"
+                      className="text-indigo-600 hover:text-indigo-900 p-1 rounded-full hover:bg-indigo-100 transition-colors"
                     >
-                      View Details
+                      <Eye className="h-4 w-4" />
                     </button>
                   </td>
                 </tr>

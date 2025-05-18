@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import moment from 'moment';
+import { Edit2, Trash2 } from 'lucide-react';
 
 const EmployeeTable = () => {
   interface Employee {
@@ -264,21 +265,23 @@ const EmployeeTable = () => {
                       </span>
                     ))
                     : "N/A"}
-                </td>
-
-                <td className="px-4 py-2 text-right text-sm font-medium">
-                  <span
-                    onClick={() => handleUpdateClick(employee)}
-                    className="text-blue-600 hover:text-blue-900 cursor-pointer mr-4"
-                  >
-                    Update
-                  </span>
-                  <span
-                    onClick={() => handleDeleteClick(employee.employee_id)}
-                    className="text-red-600 hover:text-red-900 cursor-pointer"
-                  >
-                    Deactivate
-                  </span>
+                </td>                <td className="px-4 py-2 text-right text-sm font-medium">
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      onClick={() => handleUpdateClick(employee)}
+                      title="Update employee"
+                      className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-100 transition-colors"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(employee.employee_id)}
+                      title="Deactivate employee"
+                      className="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-100 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

@@ -580,6 +580,7 @@ const FinalInvoice = () => {
                         type="number"
                         name="totalPartsCost"
                         value={invoice.totalPartsCost}
+                        readOnly
                         onChange={handleChange}
                         className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                       />
@@ -613,6 +614,7 @@ const FinalInvoice = () => {
                         type="number"
                         name="advancePayment"
                         value={invoice.advancePayment}
+                        readOnly
                         onChange={handleChange}
                         className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                       />

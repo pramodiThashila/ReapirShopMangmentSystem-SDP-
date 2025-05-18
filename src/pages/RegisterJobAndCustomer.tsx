@@ -837,7 +837,7 @@ const validateField = (name: string, value: string): string | null => {
             </div>
 
             <p className="text-center text-gray-700 mb-6">
-              Would you like to use this customer's information for the new job?
+              Would you like to use this customer's information for the new job? If no use a new phone Number
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-4">

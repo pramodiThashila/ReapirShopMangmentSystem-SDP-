@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Edit2 } from 'lucide-react';
 
 const InventoryView = () => {
   interface InventoryItem {
@@ -150,16 +151,16 @@ const InventoryView = () => {
                     : item.status === 'Limited stock'
                     ? 'Limited Stock'
                     : 'Out of Stock'}
-                </td>
-                <td className="px-4 py-2 text-center">
+                </td>                <td className="px-4 py-2 text-center">
                   <button
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent row selection when clicking update
                       handleUpdateClick(item);
                     }}
-                    className="px-3 py-1 text-sm text-white bg-green-500 rounded-lg hover:bg-green-600"
+                    title="Update inventory item"
+                    className="text-green-600 hover:text-green-900 p-1 rounded-full hover:bg-green-100 transition-colors"
                   >
-                    Update
+                    <Edit2 className="h-4 w-4" />
                   </button>
                 </td>
               </tr>

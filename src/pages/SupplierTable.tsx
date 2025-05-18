@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Edit2 } from 'lucide-react';
 
 const SupplierTable = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -138,13 +139,13 @@ const SupplierTable = () => {
                 <td className="px-4 py-2 text-sm text-gray-700">{supplier.supplier_name}</td>
                 <td className="px-4 py-2 text-sm text-gray-700">{supplier.email}</td>
                 <td className="px-4 py-2 text-sm text-gray-700">{supplier.phone_number.join(', ')}</td>
-                <td className="px-4 py-2 text-sm text-gray-700">{supplier.address}</td>
-                <td className="px-4 py-2 text-center">
+                <td className="px-4 py-2 text-sm text-gray-700">{supplier.address}</td>                <td className="px-4 py-2 text-center">
                   <button
                     onClick={() => handleUpdateClick(supplier)}
-                    className="px-3 py-1 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+                    title="Update supplier"
+                    className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-100 transition-colors"
                   >
-                    Update
+                    <Edit2 className="h-4 w-4" />
                   </button>
                 </td>
               </tr>

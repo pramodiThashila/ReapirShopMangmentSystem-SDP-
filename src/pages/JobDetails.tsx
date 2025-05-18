@@ -28,6 +28,7 @@ const JobDetails = () => {
     product_image: string;
     employee_name?: string;
     repair_status: string;
+    customer_name: string;
   }[]>([]);
   const [selectedJob, setSelectedJob] = useState<{
     job_id: string;
@@ -36,6 +37,7 @@ const JobDetails = () => {
     product_image: string;
     employee_name?: string;
     repair_status: string;
+    customer_name: string;
   } | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
@@ -104,6 +106,7 @@ const JobDetails = () => {
     product_image: string;
     employee_name?: string;
     repair_status: string;
+    customer_name: string;
   }) => {
     setSelectedJob(job);
   };
@@ -207,7 +210,8 @@ const fallbackImageBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZ
       job.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (job.employee_name && job.employee_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       job.job_id.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.repair_status.toLowerCase().includes(searchQuery.toLowerCase())
+      // job.repair_status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.customer_name.toLowerCase().includes(searchQuery.toLowerCase())
     )
     : jobs;
   //  handle advance invoice button click
@@ -424,6 +428,7 @@ const fallbackImageBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZ
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job ID</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
@@ -460,6 +465,9 @@ const fallbackImageBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZ
                           </div>
                         </td>
                         <td className="px-6 py-4">
+                          <div className="text-sm text-gray-700 max-w-xs truncate">{job.customer_name}</div>
+                        </td>
+                        <td className="px-6 py-4">
                           <div className="text-sm text-gray-700 max-w-xs truncate">{job.repair_description}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -467,6 +475,7 @@ const fallbackImageBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZ
                             ${job.repair_status.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                               job.repair_status.toLowerCase() === 'on progress' || job.repair_status.toLowerCase() === 'in progress' ? 'bg-blue-100 text-blue-800' :
                                 job.repair_status.toLowerCase() === 'completed' ? 'bg-green-100 text-green-800' :
+                                job.repair_status.toLowerCase() === 'paid' ? 'bg-purple-100 text-purple-800' :
                                   'bg-gray-100 text-gray-800'
                             }`}
                           >

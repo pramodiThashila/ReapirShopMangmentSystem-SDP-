@@ -59,7 +59,7 @@ const AdvanceInvoiceDetails: React.FC = () => {
       try {
         setLoading(true);
         const response = await axios.get(`http://localhost:5000/api/advance-invoice/${id}`);
-        console.log(response.data); // Debugging: Log the API response
+        //console.log(response.data); // Debugging: Log the API response
 
         // Map the response to match the frontend field names
         const mappedInvoice = {

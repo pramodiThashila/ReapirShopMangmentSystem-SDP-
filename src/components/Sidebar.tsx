@@ -13,6 +13,7 @@ import {
   BarChart2,
   ChevronDown,
   ChevronRight,
+  Star,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext'; // Import useUser hook
@@ -39,7 +40,7 @@ const menuItems: MenuItem[] = [
 
   { path: '/employees', icon: UserCog, label: 'Employees',roles: ['owner'], subItems: [
       { path: '/employees', label: 'View Employees',roles: ['owner'] },
-      { path: '/employees/register', label: 'Add Employee',roles: ['employee','owner'] },
+      // { path: '/employees/register', label: 'Add Employee',roles: ['employee','owner'] },
     ],
   },
   { path: '/jobs/view', icon: Wrench, label: 'Jobs',roles: ['employee','owner'], subItems: [
@@ -76,7 +77,7 @@ const menuItems: MenuItem[] = [
       { path: '/supplier/register', label: 'Add Supplier',roles: ['owner'] },
     ],
   },
-  { path: '/customer-feedback', icon: BarChart2, label: 'Customer Feedback',roles: ['owner'] },
+  { path: '/customer-feedback', icon: Star, label: 'Customer Feedback',roles: ['owner'] },
   { path: '/reports', icon: BarChart2, label: 'Reports' ,roles: ['owner'],subItems: [
     { path: '/reports/purchase', label: 'Purchase Report',roles: ['owner'] },
     { path: '/reports/valuation', label: 'Inventory Valuation Report',roles: ['owner'] },
