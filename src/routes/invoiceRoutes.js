@@ -27,41 +27,41 @@ router.post('/add', [
     body('job_id').isInt().withMessage('Job ID must be an integer'),
     body('customer_id').isInt().withMessage('Customer ID must be an integer'),
     body('employee_id').isInt().withMessage('Employee ID must be an integer'),
-    
+
     // Validate labor_cost (positive, non-zero)
     body('labour_cost')
         .isFloat({ min: 0.01 }).withMessage('Labour Cost must be greater than zero'),
-    
+
     // Validate parts_cost
     body('parts_cost')
         .isFloat({ min: 0 }).withMessage('Parts cost must be a non-negative number'),
-    
+
     // Validate total_amount (positive, non-zero)
     body('total_amount')
         .isFloat({ min: 0.01 }).withMessage('Total amount must be greater than zero'),
-    
+
     // Validate date is today
     body('invoice_date')
         .isISO8601().withMessage('Date must be in valid format (YYYY-MM-DD)')
         .custom(value => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            
+
             const inputDate = new Date(value);
             inputDate.setHours(0, 0, 0, 0);
-            
+
             if (inputDate.getTime() !== today.getTime()) {
                 throw new Error('Invoice date must be today');
             }
             return true;
         }),
-    
+
     body('created_by')
         .isString().withMessage('Created by must be a string'),
-    
+
     body('warranty_eligible')
         .isBoolean().withMessage('Warranty eligibility must be a boolean')
-    
+
 ], async (req, res) => {
     // Validate request body
     const errors = validationResult(req);
@@ -69,11 +69,11 @@ router.post('/add', [
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { 
-        job_id, 
-        customer_id, 
-        employee_id, 
-        labour_cost, 
+    const {
+        job_id,
+        customer_id,
+        employee_id,
+        labour_cost,
         parts_cost,
         total_amount,
         invoice_date,
@@ -102,10 +102,10 @@ router.post('/add', [
 
         // Check for advance invoice for this job
         const [advanceInvoice] = await pool.query(
-            "SELECT AdvanceInvoice_Id FROM AdvanceInvoice WHERE job_id = ?", 
+            "SELECT AdvanceInvoice_Id FROM AdvanceInvoice WHERE job_id = ?",
             [job_id]
         );
-        
+
         // Calculate warranty expiration date (6 months from today)
         const warrantyExpDate = new Date(invoice_date);
         warrantyExpDate.setMonth(warrantyExpDate.getMonth() + 6);
@@ -132,10 +132,10 @@ router.post('/add', [
         `;
 
         const [result] = await pool.query(insertQuery, [
-            job_id, 
-            customer_id, 
+            job_id,
+            customer_id,
             employee_id,
-            parts_cost, 
+            parts_cost,
             labour_cost,
             total_amount,
             warranty_eligible ? 1 : 0,
@@ -151,7 +151,7 @@ router.post('/add', [
                 repair_status = 'paid' 
             WHERE job_id = ?;
         `;
-        
+
         await pool.query(updateJobQuery, [invoice_date, job_id]);
 
         // Commit transaction
@@ -169,9 +169,9 @@ router.post('/add', [
     } catch (error) {
         // Rollback transaction on error
         await pool.query('ROLLBACK');
-        
+
         console.error('Error adding invoice:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: error.message || 'Failed to create invoice'
         });
     }
@@ -233,12 +233,21 @@ router.get('/all', async (req, res) => {
             // Calculate balance due (if advance payment exists)
             const advancePayment = invoice.advance_payment || 0;
             const balanceDue = invoice.Total_Amount - advancePayment;
-            
+
             // Format the dates for better readability
-            const formattedInvoiceDate = new Date(invoice.invoice_date).toISOString().split('T')[0];
-            const formattedWarrantyExpDate = invoice.warranty_exp_date ? 
-                new Date(invoice.warranty_exp_date).toISOString().split('T')[0] : null;
-            
+            const formatLocalDate = (dateStr) => {
+                const date = new Date(dateStr);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            const formattedInvoiceDate = formatLocalDate(invoice.invoice_date);
+
+            const formattedWarrantyExpDate = invoice.warranty_exp_date ?
+                formatLocalDate(invoice.warranty_exp_date) : null;
+
             return {
                 ...invoice,
                 advance_payment: advancePayment,
@@ -266,11 +275,11 @@ router.get('/:Invoice_Id', async (req, res) => {
     try {
         // Validate invoiceId is a number
         if (isNaN(invoiceId)) {
-            return res.status(400).json({ 
-                error: 'Invalid invoice ID format. Must be a number.' 
+            return res.status(400).json({
+                error: 'Invalid invoice ID format. Must be a number.'
             });
         }
-        
+
         // Fetch invoice with related information
         const invoiceQuery = `
             SELECT 
@@ -328,7 +337,7 @@ router.get('/:Invoice_Id', async (req, res) => {
             "SELECT phone_number FROM telephones_customer WHERE customer_id = ?",
             [invoiceRows[0].customer_id]
         );
-        
+
         // Get inventory items used for this job
         const [usedItems] = await pool.query(`
             SELECT 
@@ -347,16 +356,25 @@ router.get('/:Invoice_Id', async (req, res) => {
             WHERE 
                 jui.job_id = ?
         `, [invoiceRows[0].job_id]);
-        
+
         // Calculate balance due
         const advancePayment = invoiceRows[0].advance_payment || 0;
         const balanceDue = invoiceRows[0].Total_Amount - advancePayment;
-        
+
         // Format dates
-        const formattedInvoiceDate = new Date(invoiceRows[0].invoice_date).toISOString().split('T')[0];
-        const formattedWarrantyExpDate = invoiceRows[0].warranty_exp_date ? 
-            new Date(invoiceRows[0].warranty_exp_date).toISOString().split('T')[0] : null;
-        
+        const formatLocalDate = (dateStr) => {
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        const formattedInvoiceDate = formatLocalDate(invoiceRows[0].invoice_date);
+        const formattedWarrantyExpDate = invoiceRows[0].warranty_exp_date ?
+            formatLocalDate(invoiceRows[0].warranty_exp_date) : null;
+
+
         // Prepare the response
         const invoiceDetails = {
             ...invoiceRows[0],
@@ -368,7 +386,7 @@ router.get('/:Invoice_Id', async (req, res) => {
             warranty_exp_date: formattedWarrantyExpDate,
             warranty_status: determineWarrantyStatus(invoiceRows[0].warranty, invoiceRows[0].warranty_exp_date)
         };
-
+        console.log(invoiceDetails);
         res.json(invoiceDetails);
     } catch (error) {
         console.error('Error fetching invoice:', error);
@@ -394,7 +412,7 @@ router.get('/check/:jobId', async (req, res) => {
 
         // 1. Check if job exists and get its status
         const [jobRows] = await pool.query(
-            'SELECT job_id, repair_status FROM jobs WHERE job_id = ?', 
+            'SELECT job_id, repair_status FROM jobs WHERE job_id = ?',
             [jobId]
         );
 
@@ -415,7 +433,7 @@ router.get('/check/:jobId', async (req, res) => {
         );
 
         const invoiceExists = invoiceRows.length > 0;
-        
+
         // 4. Prepare the response based on both conditions
         if (!isJobCompleted) {
             return res.status(200).json({
@@ -425,7 +443,7 @@ router.get('/check/:jobId', async (req, res) => {
                 jobStatus: jobRows[0].repair_status
             });
         }
-        
+
         if (invoiceExists) {
             return res.status(200).json({
                 success: true,
@@ -435,7 +453,7 @@ router.get('/check/:jobId', async (req, res) => {
                 jobStatus: jobRows[0].repair_status
             });
         }
-        
+
         // Job is completed and no invoice exists - can create invoice
         return res.status(200).json({
             success: true,
@@ -510,12 +528,12 @@ router.get('/warrantyEligibleJobs', async (req, res) => {
 // Helper function to determine warranty status
 function determineWarrantyStatus(hasWarranty, expiryDate) {
     if (!hasWarranty) return 'No Warranty';
-    
+
     if (!expiryDate) return 'Unknown';
-    
+
     const today = new Date();
     const expiry = new Date(expiryDate);
-    
+
     if (expiry < today) {
         return 'Expired';
     } else {
@@ -648,10 +666,21 @@ router.get('/invoiceDetails/:jobId', async (req, res) => {
         // Calculate balance due
         const balanceDue = invoice.Total_Amount - advancePayment;
 
+        const formatLocalDate = (dateStr) => {
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+
+
         // Format warranty expiration date
-        const formattedWarrantyExpDate = invoice.warranty_exp_date
-            ? new Date(invoice.warranty_exp_date).toISOString().split('T')[0]
-            : null;
+        const formattedInvoiceDate = formatLocalDate(invoiceRows[0].invoice_date);
+        const formattedWarrantyExpDate = invoiceRows[0].warranty_exp_date ?
+            formatLocalDate(invoiceRows[0].warranty_exp_date) : null;
+
 
         // Prepare the response
         const response = {
@@ -664,7 +693,7 @@ router.get('/invoiceDetails/:jobId', async (req, res) => {
                 warranty: invoice.warranty ? 'Yes' : 'No',
                 warranty_exp_date: formattedWarrantyExpDate,
                 Is_warranty_claimed: invoice.Is_warranty_claimed ? 'Yes' : 'No',
-                invoice_date: new Date(invoice.invoice_date).toISOString().split('T')[0],
+                invoice_date: formattedInvoiceDate,
                 created_by: invoice.created_by
             },
             advance_payment: advancePayment,

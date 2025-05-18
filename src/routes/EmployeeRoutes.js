@@ -167,7 +167,7 @@ router.get("/:id", async (req, res) => {
 });
 
 
-// Update Employee (PUT - Full Update)
+// Update Employee (PUT - Full Update)(no)
 router.put(
     "/:id",
     [
@@ -256,7 +256,7 @@ router.put(
 );
 
 
-// Delete Employee
+// Deactivate Employee
 router.put("/makeinactive/:id", async (req, res) => {
     const { id } = req.params;
     try {
@@ -268,6 +268,7 @@ router.put("/makeinactive/:id", async (req, res) => {
     }
 });
 
+//employee login
 router.post(
     "/login",
     [

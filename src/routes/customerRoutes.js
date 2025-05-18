@@ -133,7 +133,7 @@ router.put(
     }
 );
 
-// Partial Update (PATCH)
+// Partial Update (PATCH)No
 router.patch("/:id", async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
@@ -161,7 +161,7 @@ router.patch("/:id", async (req, res) => {
     }
 });
 
-// Delete Customer
+// Delete Customer (NO)
 router.delete("/delete/:id", async (req, res) => {
     const { id } = req.params;
     try {

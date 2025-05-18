@@ -5,7 +5,7 @@ const db = require('../config/db');
 
 /**
  * Create a new advance invoice
- * POST /api/advance-invoice
+ * 
  */
 router.post(
   '/create',
@@ -208,6 +208,7 @@ router.get('/:id', async (req, res) => {
 /**
  * Get advance invoices by job ID
  * GET /api/advance-invoice/job/:jobId
+ * didnt' use
  */
 router.get('/job/:jobId', async (req, res) => {
   try {
@@ -243,6 +244,7 @@ router.get('/job/:jobId', async (req, res) => {
 /**
  * Delete advance invoice
  * DELETE /api/advance-invoice/:id
+ * didnt use
  */
 router.delete('/:id', async (req, res) => {
   const connection = await db.getConnection();
