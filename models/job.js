@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     repair_status: {
-      type: DataTypes.ENUM('pending', 'on progress', 'completed','cancelled'),
+      type: DataTypes.ENUM('pending', 'on progress', 'completed','cancelled','paid'),
       defaultValue: 'pending',
       allowNull: false,
     },

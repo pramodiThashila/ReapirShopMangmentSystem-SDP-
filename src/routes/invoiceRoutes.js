@@ -106,12 +106,13 @@ router.post('/add', [
             [job_id]
         );
         
-        
-
         // Calculate warranty expiration date (6 months from today)
         const warrantyExpDate = new Date(invoice_date);
         warrantyExpDate.setMonth(warrantyExpDate.getMonth() + 6);
         const formattedWarrantyExpDate = warrantyExpDate.toISOString().split('T')[0];
+
+        // Begin transaction
+        await pool.query('START TRANSACTION');
 
         // Insert new invoice into the database
         const insertQuery = `
@@ -143,10 +144,21 @@ router.post('/add', [
             created_by
         ]);
 
+        // Update the job's handover date and status to 'paid'
+        const updateJobQuery = `
+            UPDATE jobs 
+            SET handover_date = ?, 
+                repair_status = 'paid' 
+            WHERE job_id = ?;
+        `;
         
+        await pool.query(updateJobQuery, [invoice_date, job_id]);
+
+        // Commit transaction
+        await pool.query('COMMIT');
 
         res.status(201).json({
-            message: 'Invoice created successfully',
+            message: 'Invoice created successfully and job status updated to paid',
             Invoice_Id: result.insertId,
             parts_cost,
             labour_cost,
@@ -155,6 +167,9 @@ router.post('/add', [
             warranty_exp_date: warranty_eligible ? formattedWarrantyExpDate : null
         });
     } catch (error) {
+        // Rollback transaction on error
+        await pool.query('ROLLBACK');
+        
         console.error('Error adding invoice:', error);
         res.status(500).json({ 
             error: error.message || 'Failed to create invoice'
