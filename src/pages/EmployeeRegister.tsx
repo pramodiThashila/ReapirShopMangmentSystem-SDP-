@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import moment from 'moment';
+import { useNavigate } from 'react-router-dom';
 
 const EmployeeRegister = () => {
+    const navigate = useNavigate(); // Initialize the navigate function
     const [employee, setEmployee] = useState<{
         first_name: string;
         last_name: string;
@@ -198,6 +200,12 @@ const EmployeeRegister = () => {
             
             // Clear any errors
             setErrors({});
+            
+            // Show success message briefly before navigating
+            setTimeout(() => {
+                navigate('/'); // Navigate to login page after 1.5 seconds
+            }, 1500);
+            
         } catch (error) {
             console.error('Error registering employee:', error);
             
@@ -459,6 +467,7 @@ const EmployeeRegister = () => {
                         type="button"
                         className="w-full bg-gray-400 text-white py-3 px-4 rounded-lg hover:bg-gray-500 transition duration-200"
                         onClick={() => {
+                            // Clear form data
                             setEmployee({
                                 first_name: '',
                                 last_name: '',
@@ -472,6 +481,9 @@ const EmployeeRegister = () => {
                             });
                             setErrors({});
                             setMessage('');
+                            
+                            // Navigate back to login page when cancelled
+                            navigate('/');
                         }}
                     >
                         Cancel

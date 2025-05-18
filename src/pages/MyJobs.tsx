@@ -254,7 +254,20 @@ const JobDetails = () => {
     navigate(`/jobs/${selectedJob.job_id}/used-inventory`);
   };
 
-  const handleStatusUpdate = (jobId: string) => {
+  const handleStatusUpdate = (jobId: string, currentStatus: string) => {
+    // Check if job is already in a terminal state
+    if (currentStatus.toLowerCase() === 'completed' || currentStatus.toLowerCase() === 'cancelled') {
+      setShowAlert(true);
+      setAlertType("warning");
+      setAlertMessage(`Cannot update status for ${currentStatus} jobs`);
+
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
+
+      return;
+    }
+
     setJobForStatusUpdate(jobId);
     setIsStatusModalOpen(true);
   };
@@ -364,9 +377,9 @@ const JobDetails = () => {
       {showAlert && (
         <div
           className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 flex items-center ${alertType === "success" ? "bg-green-100 text-green-800 border-l-4 border-green-500" :
-              alertType === "error" ? "bg-red-100 text-red-800 border-l-4 border-red-500" :
-                alertType === "warning" ? "bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500" :
-                  "bg-blue-100 text-blue-800 border-l-4 border-blue-500"
+            alertType === "error" ? "bg-red-100 text-red-800 border-l-4 border-red-500" :
+              alertType === "warning" ? "bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500" :
+                "bg-blue-100 text-blue-800 border-l-4 border-blue-500"
             }`}
         >
           {alertType === "success" ? <CheckCircle className="h-5 w-5 mr-2" /> :
@@ -432,14 +445,15 @@ const JobDetails = () => {
             <button
               onClick={handleInventoryUpdateClick}
               className={`px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center
-    ${selectedJob
+                ${selectedJob && !['paid', 'cancelled'].includes(selectedJob.repair_status.toLowerCase())
                   ? 'bg-blue-600 text-white hover:bg-blue-700'
                   : 'bg-blue-200 text-blue-400 cursor-not-allowed'}`}
-              disabled={!selectedJob}
+              disabled={!selectedJob || ['paid', 'cancelled'].includes(selectedJob.repair_status.toLowerCase())}
             >
               <Plus className="w-5 h-5 mr-2" />
               Add Used Inventory
             </button>
+
             <button
               onClick={handleNavigateToUsedInventory}
               disabled={!selectedJob}
@@ -541,12 +555,18 @@ const JobDetails = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStatusUpdate(job.job_id);
+                              handleStatusUpdate(job.job_id, job.repair_status);
                             }}
-                            className="px-3 py-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded-lg text-sm font-medium transition-colors flex items-center"
+                            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors flex items-center
+                             ${job.repair_status.toLowerCase() === 'completed' || job.repair_status.toLowerCase() === 'cancelled'|| job.repair_status.toLowerCase() === 'paid'
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-800'}`}
+                            disabled={job.repair_status.toLowerCase() === 'completed' || job.repair_status.toLowerCase() === 'cancelled'|| job.repair_status.toLowerCase() === 'paid'}
                           >
                             <ChevronRight className="h-4 w-4 mr-1" />
-                            Update Status
+                            {job.repair_status.toLowerCase() === 'completed' || job.repair_status.toLowerCase() === 'cancelled'|| job.repair_status.toLowerCase() === 'paid'
+                              ? 'Status Fixed'
+                              : 'Update Status'}
                           </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -850,6 +870,7 @@ const JobDetails = () => {
               <ul className="list-disc list-inside mb-6 text-sm text-gray-600">
                 <li className="mb-2">Update the job status to "completed" in the system</li>
                 <li className="mb-2">Send an email notification to the customer</li>
+                <li className="mb-2">You will not be able to update the used inventory after</li>
                 <li>Close the active repair job</li>
               </ul>
 

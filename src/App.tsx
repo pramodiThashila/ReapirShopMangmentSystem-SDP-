@@ -43,7 +43,11 @@ function App() {
     <UserProvider>
       <Router>
         <Routes>
+          {/* Public routes without sidebar */}
           <Route path="/" element={<Login />} />
+          <Route path="/employees/register" element={<EmployeeRegister />} />
+         
+         {/* Protected routes with sidebar */}
           <Route
             path="/*"
             element={
@@ -58,7 +62,6 @@ function App() {
                   <main className="flex-1 overflow-y-auto p-6">
                     <Routes>
                       <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/employees/register" element={<EmployeeRegister />} />
                       <Route path="/employees" element={<EmployeeTable />} />
                       <Route path="/inventoryItem/add" element={<InventoryItemAdd />} />
                       <Route path="/inventory/view" element={<InventoryView />} />

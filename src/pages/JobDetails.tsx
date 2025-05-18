@@ -114,6 +114,13 @@ const JobDetails = () => {
       showNotification("Please select a job first", "warning");
       return;
     }
+
+    if (selectedJob.repair_status.toLowerCase() === 'paid' || 
+        selectedJob.repair_status.toLowerCase() === 'cancelled') {
+      showNotification(`Cannot add inventory to ${selectedJob.repair_status} jobs.`, "warning");
+      return;
+    }
+
     setIsInventoryModalOpen(true);
   };
 
@@ -210,6 +217,11 @@ const fallbackImageBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZ
       return;
     }
 
+    if (selectedJob.repair_status.toLowerCase() === 'paid') {
+      showNotification("Cannot create advance invoice for paid jobs.", "warning");
+      return;
+    }
+
     navigate(`/advance-payment-invoice?jobId=${selectedJob.job_id}`);
   };
 
@@ -222,6 +234,11 @@ const fallbackImageBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZ
 
     if (selectedJob.repair_status.toLowerCase() !== 'completed') {
       showNotification("Only completed jobs can be invoiced.", "warning");
+      return;
+    }
+
+    if (selectedJob.repair_status.toLowerCase() === 'paid') {
+      showNotification("This job has already been paid.", "warning");
       return;
     }
 
@@ -331,10 +348,10 @@ const fallbackImageBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZ
             <button
               onClick={handleAdvanceInvoiceClick}
               className={`px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center
-                ${selectedJob
+                ${selectedJob && selectedJob.repair_status.toLowerCase() !== 'paid'
                   ? 'bg-blue-600 text-white hover:bg-blue-700'
                   : 'bg-blue-200 text-blue-400 cursor-not-allowed'}`}
-              disabled={!selectedJob}
+              disabled={!selectedJob || selectedJob.repair_status.toLowerCase() === 'paid'}
             >
               <FileText className="w-5 h-5 mr-2" />  Create Advance Invoice
             </button>
@@ -342,22 +359,22 @@ const fallbackImageBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZ
             <button
               onClick={handleCreateInvoiceClick}
               className={`px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center
-                ${selectedJob && selectedJob.repair_status.toLowerCase() === 'completed'
+                ${selectedJob && selectedJob.repair_status.toLowerCase() === 'completed' && selectedJob.repair_status.toLowerCase() !== 'paid'
                   ? 'bg-green-600 text-white hover:bg-green-700'
                   : 'bg-green-200 text-green-400 cursor-not-allowed'}`}
-              disabled={!selectedJob || selectedJob.repair_status.toLowerCase() !== 'completed'}
+              disabled={!selectedJob || selectedJob.repair_status.toLowerCase() !== 'completed' || selectedJob.repair_status.toLowerCase() === 'paid'}
             >
-              
+              <DollarSign className="w-5 h-5 mr-2" />
               Create Final Invoice
             </button>
 
             <button
               onClick={handleInventoryUpdateClick}
               className={`px-4 py-2 rounded-lg transition-colors shadow-sm flex items-center justify-center
-              ${selectedJob && selectedJob.repair_status.toLowerCase() !=='completed'
-                  ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                  : 'bg-yellow-200 text-yellow-400 cursor-not-allowed'}`}
-              disabled={!selectedJob || selectedJob.repair_status.toLowerCase() !== 'completed'}
+              ${selectedJob && selectedJob.repair_status.toLowerCase() !== 'paid' && selectedJob.repair_status.toLowerCase() !== 'cancelled'
+      ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+      : 'bg-yellow-200 text-yellow-400 cursor-not-allowed'}`}
+              disabled={!selectedJob || selectedJob.repair_status.toLowerCase() === 'paid' || selectedJob.repair_status.toLowerCase() === 'cancelled'}
             >
               <Plus className="w-5 h-5 mr-2" />
               Add Used Inventory
